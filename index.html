@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHIFT PRO</title>
+
+    <!-- الأيقونات -->
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #f4b942;
+            --bg: #f4f7f6;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0;
+        }
+
+        .topbar {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .app-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .app-brand {
+            margin: 0;
+            font-size: 20px;
+            letter-spacing: 1px;
+        }
+
+        .app-brand span:last-child {
+            color: var(--accent);
+        }
+
+        .worker-name {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        .credit {
+            margin-top: 50px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .credit img {
+            width: 80px;
+            border-radius: 50%;
+            margin-bottom: 10px;
+        }
+
+        .nm { font-weight: bold; margin: 5px 0; }
+        .made { color: #7f8c8d; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <!-- الشريط العلوي -->
+    <div class="topbar">
+        <img src="icon-192.png" alt="Logo" class="app-logo">
+        <div>
+            <h1 class="app-brand"><span>SHIFT</span><span>PRO</span></h1>
+            <p class="worker-name" id="workerName">اسم العامل</p>
+        </div>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="container">
+        <h2>أهلاً بك في شيفت برو</h2>
+        <p>هنا ستظهر بيانات الشيفتات الخاصة بك.</p>
+    </div>
+
+    <!-- قسم المطور -->
+    <div class="credit">
+        <!-- يمكنك استخدام icon-192.png هنا أيضاً إذا أردت شعاراً للمطور -->
+        <img src="icon-512.png" alt="Developer Logo">
+        <div class="info">
+            <p class="made">تم الإنشاء بواسطة</p>
+            <p class="nm">أمير أنور</p>
+            <a href="tel:01066227553">01066227553</a>
+        </div>
+    </div>
+
+    <script>
+        // مثال بسيط لتغيير اسم العامل برمجياً
+        document.getElementById('workerName').innerText = "محمد أحمد";
+    </script>
+</body>
+</html>
+
