@@ -119,10 +119,6 @@
   .legend span{ display:flex; align-items:center; gap:6px; }
   .legend .dot{ width:9px; height:9px; border-radius:50%; }
 
-
-  /* =========================
-     ShiftPro Animated Navigation Icons
-     ========================= */
   .tabbar .ic{
     width:26px;
     height:26px;
@@ -155,18 +151,10 @@
     animation:navIconGlow 2.4s ease-in-out infinite;
   }
 
-  /* Calendar: subtle page flip */
-  .icon-calendar .cal-page{
-    transform-origin:50% 18%;
-  }
-  .tabbar button.active .icon-calendar .cal-page{
-    animation:calendarFlip 2.2s ease-in-out infinite;
-  }
-  .icon-calendar .cal-dot{
-    animation:calendarDot 1.8s ease-in-out infinite;
-  }
+  .icon-calendar .cal-page{ transform-origin:50% 18%; }
+  .tabbar button.active .icon-calendar .cal-page{ animation:calendarFlip 2.2s ease-in-out infinite; }
+  .icon-calendar .cal-dot{ animation:calendarDot 1.8s ease-in-out infinite; }
 
-  /* Summary: bars rise one after another */
   .icon-summary .bar1{animation-delay:0s}
   .icon-summary .bar2{animation-delay:.12s}
   .icon-summary .bar3{animation-delay:.24s}
@@ -175,26 +163,11 @@
     transform-origin:50% 100%;
   }
 
-  /* Salary: coin shimmer */
-  .icon-salary .coin{
-    transform-origin:50% 50%;
-  }
-  .tabbar button.active .icon-salary .coin{
-    animation:coinBounce 1.8s ease-in-out infinite;
-  }
-  .tabbar button.active .icon-salary .spark{
-    animation:sparkle 1.8s ease-in-out infinite;
-  }
-
-  /* Reports: document scan */
-  .tabbar button.active .icon-reports .scan{
-    animation:scanLine 1.7s ease-in-out infinite;
-  }
-
-  /* Settings: rotating gear */
-  .tabbar button.active .icon-settings svg{
-    animation:gearSpin 5s linear infinite;
-  }
+  .icon-salary .coin{ transform-origin:50% 50%; }
+  .tabbar button.active .icon-salary .coin{ animation:coinBounce 1.8s ease-in-out infinite; }
+  .tabbar button.active .icon-salary .spark{ animation:sparkle 1.8s ease-in-out infinite; }
+  .tabbar button.active .icon-reports .scan{ animation:scanLine 1.7s ease-in-out infinite; }
+  .tabbar button.active .icon-settings svg{ animation:gearSpin 5s linear infinite; }
 
   @keyframes navIconFloat{
     0%,100%{transform:translateY(0) scale(1)}
@@ -423,9 +396,6 @@
     table.report-table tfoot td{ background:#eee; color:#000; }
   }
 
-  /* =========================
-     ShiftPro Animated Splash
-     ========================= */
   #shiftpro-splash{
     position:fixed;
     inset:0;
@@ -435,9 +405,9 @@
     justify-content:center;
     overflow:hidden;
     background:
-      radial-gradient(circle at 50% 18%, rgba(59,130,246,.22), transparent 32%),
-      radial-gradient(circle at 18% 85%, rgba(37,99,235,.14), transparent 34%),
-      linear-gradient(145deg,#061224 0%,#081a30 48%,#0a2340 100%);
+    radial-gradient(circle at 50% 18%, rgba(59,130,246,.22), transparent 32%),
+    radial-gradient(circle at 18% 85%, rgba(37,99,235,.14), transparent 34%),
+    linear-gradient(145deg,#061224 0%,#081a30 48%,#0a2340 100%);
     opacity:1;
     visibility:visible;
     transition:opacity .8s ease, visibility .8s ease;
@@ -451,8 +421,8 @@
     position:absolute;
     inset:0;
     background-image:
-      radial-gradient(circle,rgba(147,197,253,.75) 0 1px,transparent 1.5px),
-      radial-gradient(circle,rgba(96,165,250,.45) 0 1px,transparent 1.5px);
+    radial-gradient(circle,rgba(147,197,253,.75) 0 1px,transparent 1.5px),
+    radial-gradient(circle,rgba(96,165,250,.45) 0 1px,transparent 1.5px);
     background-size:73px 91px,127px 149px;
     background-position:15px 21px,53px 71px;
     opacity:.28;
@@ -623,8 +593,6 @@
     .sp-progress span{width:100}
   }
 
-
-  /* Animated in-app ShiftPro brand */
   .topbar .app-brand{
     display:flex;
     direction:ltr;
@@ -673,16 +641,13 @@
     50%{transform:scaleX(1);opacity:.9}
   }
 
-
   @media (max-width:420px){
     .topbar .app-brand{font-size:19px;gap:7px}
   }
-
 </style>
 </head>
 <body>
 
-<!-- ShiftPro Animated Splash Screen -->
 <div id="shiftpro-splash" aria-label="ShiftPro">
   <div class="sp-stars"></div>
   <div class="sp-orb one"></div>
@@ -706,7 +671,6 @@
     <div class="sp-progress" aria-hidden="true"><span></span></div>
   </div>
 </div>
-
 
 <div class="topbar">
   <h1 class="app-brand" aria-label="SHIFT PRO"><span>SHIFT</span><span>PRO</span></h1>
@@ -943,10 +907,57 @@
   <button class="status-btn clear" id="btnClear">مسح التسجيل (رجوع للوضع الافتراضي)</button>
 </div>
 
+<!-- Firebase SDK Integration Module -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBCwFKIr-YmbgMBB3YxxroJRvqJK3XbBEk",
+    authDomain: "shiftpro-9aed6.firebaseapp.com",
+    projectId: "shiftpro-9aed6",
+    storageBucket: "shiftpro-9aed6.appspot.com",
+    messagingSenderId: "542718151240",
+    appId: "1:542718151240:web:..."
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const USER_ID = "user_amir";
+
+  window.saveToCloud = async function(key, data) {
+    try {
+      await setDoc(doc(db, "shiftpro_data", USER_ID), {
+        [key]: data,
+        updatedAt: new Date()
+      }, { merge: true });
+      console.log("تم الحفظ سحابياً بنجاح");
+    } catch(e) {
+      console.error("خطأ في الحفظ السحابي:", e);
+    }
+  };
+
+  window.loadFromCloud = async function(key) {
+    try {
+      const snap = await getDoc(doc(db, "shiftpro_data", USER_ID));
+      if(snap.exists() && snap.data()[key]){
+        return snap.data()[key];
+      }
+    } catch(e) {
+      console.error("خطأ في التحميل السحابي:", e);
+    }
+    return null;
+  };
+
+  // إرسال حدث بأن فايربيس أصبح جاهزاً
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+
 <script>
 const $ = (s)=>document.querySelector(s);
 const STORAGE_KEY = 'shift_calendar_settings_v1';
 const ATTEND_KEY = 'shift_calendar_attendance_v1';
+const SCHEDULE_KEY = 'shift_calendar_schedule_override_v1';
 
 function loadSettings(){
   try{
@@ -957,6 +968,7 @@ function loadSettings(){
 }
 function saveSettings(s){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  if(window.saveToCloud) window.saveToCloud('settings', s);
 }
 function loadAttendance(){
   try{
@@ -967,8 +979,8 @@ function loadAttendance(){
 }
 function saveAttendance(a){
   localStorage.setItem(ATTEND_KEY, JSON.stringify(a));
+  if(window.saveToCloud) window.saveToCloud('attendance', a);
 }
-const SCHEDULE_KEY = 'shift_calendar_schedule_override_v1';
 function loadScheduleOverrides(){
   try{
     const raw = localStorage.getItem(SCHEDULE_KEY);
@@ -978,6 +990,7 @@ function loadScheduleOverrides(){
 }
 function saveScheduleOverrides(o){
   localStorage.setItem(SCHEDULE_KEY, JSON.stringify(o));
+  if(window.saveToCloud) window.saveToCloud('schedule', o);
 }
 
 let settings = loadSettings();
@@ -991,16 +1004,15 @@ if(!settings){
   };
   saveSettings(settings);
 }
-// backfill defaults for users upgrading from an older version
 if(settings.salary === undefined) settings.salary = 6000;
 if(settings.monthlyHours === undefined) settings.monthlyHours = 208;
 if(settings.shiftHours === undefined) settings.shiftHours = 12;
 if(settings.cycleDay === undefined) settings.cycleDay = 26;
 
 let attendance = loadAttendance();
-let schedule = loadScheduleOverrides(); // {date: 'D'|'N'|'O'}, fully manual — no automatic cycle
+let schedule = loadScheduleOverrides();
 
-let periodRef = new Date(); // reference date for the currently viewed pay period (used by both calendar & salary tabs)
+let periodRef = new Date();
 
 const monthNamesAr = ["يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];
 const statusLabels = { A:'حضرت', X:'مطبق (24 ساعة)', L:'إجازة', B:'غياب' };
@@ -1020,13 +1032,12 @@ function dayDiff(a,b){
   return Math.round((da-db)/MS);
 }
 function scheduleFor(date){
-  return schedule[fmtDate(date)] || null; // null = not set yet by the user
+  return schedule[fmtDate(date)] || null;
 }
 function sameDay(a,b){
   return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
 }
 
-// -- attendance entry helpers (supports both legacy string format and new {status,from,to} format) --
 function getEntry(dstr){
   const v = attendance[dstr];
   if(!v) return null;
@@ -1041,7 +1052,7 @@ function computeRangeHours(from, to){
   const [fh,fm] = from.split(':').map(Number);
   const [th,tm] = to.split(':').map(Number);
   let diff = (th*60+tm) - (fh*60+fm);
-  if(diff <= 0) diff += 24*60; // crosses midnight
+  if(diff <= 0) diff += 24*60;
   return Math.round((diff/60)*100)/100;
 }
 function hoursForEntry(entry){
@@ -1081,7 +1092,7 @@ function renderCalendar(){
 
   const grid = $('#grid');
   grid.innerHTML = '';
-  const startOffset = start.getDay(); // 0=Sunday
+  const startOffset = start.getDay();
   const totalDays = dayDiff(end, start) + 1;
   const today = new Date();
 
@@ -1134,7 +1145,6 @@ function renderYearSummary(){
   $('#sumAttend').textContent = counts.D + counts.N;
 }
 
-// ---- Salary / pay period ----
 function getPayPeriod(refDate){
   const cd = settings.cycleDay;
   let y = refDate.getFullYear(), m = refDate.getMonth();
@@ -1177,8 +1187,6 @@ function renderSalary(){
       counts.A++;
       totalHours += hoursForEntry(entry);
     }
-    // no status recorded => not counted (0 hours), even if a day/night shift was scheduled
-
     d.setDate(d.getDate()+1);
   }
 
@@ -1191,7 +1199,6 @@ function renderSalary(){
   $('#pTotal').textContent = Math.round(totalHours * hourlyRate).toLocaleString('en-US') + ' جنيه';
 }
 
-// ---- Day sheet (attendance marking) ----
 let activeDate = null;
 const overlay2 = $('#overlay2');
 const daySheet = $('#daySheet');
@@ -1244,7 +1251,7 @@ function setSchedule(code){
     delete schedule[dstr];
   }
   saveScheduleOverrides(schedule);
-  openDaySheet(activeDate); // refresh sheet in place so the user can still set attendance
+  openDaySheet(activeDate);
   renderCalendar();
   renderYearSummary();
   renderSalary();
@@ -1301,7 +1308,6 @@ $('#btnClear').addEventListener('click', ()=>{
   renderReports();
 });
 
-// ---- Reports ----
 function buildReportRows(start, end){
   const rows = [];
   let totalHours = 0;
@@ -1423,6 +1429,28 @@ $('#saveBtn').addEventListener('click', ()=>{
   renderAll();
 });
 
+// تحميل البيانات سحابياً عند جاهزية فايربيس
+window.addEventListener('firebase-ready', async () => {
+  if(window.loadFromCloud) {
+    const cloudSettings = await window.loadFromCloud("settings");
+    if(cloudSettings) {
+      settings = cloudSettings;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    }
+    const cloudAttendance = await window.loadFromCloud("attendance");
+    if(cloudAttendance) {
+      attendance = cloudAttendance;
+      localStorage.setItem(ATTEND_KEY, JSON.stringify(attendance));
+    }
+    const cloudSchedule = await window.loadFromCloud("schedule");
+    if(cloudSchedule) {
+      schedule = cloudSchedule;
+      localStorage.setItem(SCHEDULE_KEY, JSON.stringify(schedule));
+    }
+    renderAll();
+  }
+});
+
 renderAll();
 
 if('serviceWorker' in navigator){
@@ -1431,7 +1459,6 @@ if('serviceWorker' in navigator){
   });
 }
 
-// ShiftPro splash controller
 (function(){
   const splash = document.getElementById('shiftpro-splash');
   if(!splash) return;
@@ -1441,7 +1468,6 @@ if('serviceWorker' in navigator){
   };
   window.setTimeout(hideSplash, 3000);
 })();
-
 </script>
 </body>
 </html>
