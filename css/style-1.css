@@ -1,0 +1,140 @@
+/* ShiftPro Premium UI */
+:root{
+  --sp-primary:#2563eb;
+  --sp-primary-2:#38bdf8;
+  --sp-gold:#d4a94f;
+  --sp-gold-soft:#f1d58a;
+  --sp-shadow:0 12px 32px rgba(15,35,60,.14);
+  --sp-shadow-hover:0 18px 42px rgba(15,35,60,.20);
+}
+body,button,input,select,textarea{
+  font-family:"Noto Sans Arabic","Cairo","Tajawal","Segoe UI",Tahoma,Arial,sans-serif;
+}
+.card,.hero-card,.stat-card{
+  position:relative;
+  overflow:hidden;
+  box-shadow:var(--sp-shadow);
+  transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s ease,border-color .28s ease;
+  animation:spCardIn .55s cubic-bezier(.2,.8,.2,1) both;
+}
+.card:hover,.hero-card:hover,.stat-card:hover{
+  transform:translateY(-4px);
+  box-shadow:var(--sp-shadow-hover);
+}
+@keyframes spCardIn{
+  from{opacity:0;transform:translateY(14px) scale(.985)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.cal-cell{
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease,background .2s ease;
+  animation:spCalendarIn .42s cubic-bezier(.2,.8,.2,1) both;
+}
+.cal-cell.clickable:hover{transform:translateY(-3px) scale(1.025);box-shadow:0 9px 20px rgba(15,35,60,.16)}
+.cal-cell.clickable:active{transform:scale(.94)}
+@keyframes spCalendarIn{
+  from{opacity:0;transform:translateY(7px) scale(.95)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.btn,.icon-btn,.nav-btn,.today-btn{
+  transition:transform .2s ease,box-shadow .2s ease,background .2s ease,border-color .2s ease;
+}
+.btn:hover,.icon-btn:hover,.nav-btn:hover,.today-btn:hover{transform:translateY(-2px)}
+.btn:active,.icon-btn:active,.nav-btn:active,.today-btn:active{transform:scale(.95)}
+@media(max-width:767px){
+  .card,.hero-card,.stat-card{border-radius:18px}
+  .btn,.icon-btn,.nav-btn,.today-btn{min-height:44px;touch-action:manipulation}
+}
+@media(prefers-reduced-motion:reduce){
+  .card,.hero-card,.stat-card,.cal-cell{animation:none!important;transition:none!important}
+}
+
+/* ============================================================
+   ShiftPro Premium Visual Layer
+   ============================================================ */
+:root{
+  --sp-primary:#2563eb;
+  --sp-primary-2:#38bdf8;
+  --sp-gold:#d4a94f;
+  --sp-gold-soft:#f1d58a;
+  --sp-shadow:0 12px 32px rgba(15,35,60,.14);
+  --sp-shadow-hover:0 18px 42px rgba(15,35,60,.20);
+}
+body,button,input,select,textarea{
+  font-family:"Noto Sans Arabic","Cairo","Tajawal","Segoe UI",Tahoma,Arial,sans-serif;
+}
+body{
+  background:
+    radial-gradient(circle at 100% 0%,rgba(56,189,248,.10),transparent 28%),
+    radial-gradient(circle at 0% 100%,rgba(212,169,79,.07),transparent 30%),
+    var(--bg);
+}
+.card,.hero-card,.stat-card{
+  position:relative;
+  overflow:hidden;
+  border-radius:22px;
+  box-shadow:var(--sp-shadow);
+  transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s ease,border-color .28s ease;
+  animation:spCardIn .55s cubic-bezier(.2,.8,.2,1) both;
+}
+.card::before,.hero-card::before,.stat-card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(120deg,transparent 15%,rgba(255,255,255,.055) 45%,transparent 70%);
+  transform:translateX(-120%);
+  transition:transform .8s ease;
+}
+.card:hover,.hero-card:hover,.stat-card:hover{
+  transform:translateY(-4px);
+  box-shadow:var(--sp-shadow-hover);
+  border-color:rgba(56,189,248,.30);
+}
+.card:hover::before,.hero-card:hover::before,.stat-card:hover::before{transform:translateX(120%)}
+.stat-card:nth-child(1){animation-delay:.04s}
+.stat-card:nth-child(2){animation-delay:.09s}
+.stat-card:nth-child(3){animation-delay:.14s}
+.stat-card:nth-child(4){animation-delay:.19s}
+@keyframes spCardIn{
+  from{opacity:0;transform:translateY(14px) scale(.985)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.cal-cell{
+  position:relative;
+  overflow:hidden;
+  transition:transform .20s ease,box-shadow .20s ease,border-color .20s ease,background .20s ease;
+  animation:spCalendarIn .42s cubic-bezier(.2,.8,.2,1) both;
+}
+.cal-cell.clickable:hover{
+  transform:translateY(-3px) scale(1.025);
+  box-shadow:0 9px 20px rgba(15,35,60,.16);
+  z-index:2;
+}
+.cal-cell.clickable:active{transform:scale(.94)}
+@keyframes spCalendarIn{
+  from{opacity:0;transform:translateY(7px) scale(.95)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.btn,.icon-btn,.nav-btn,.today-btn{
+  transition:transform .20s ease,box-shadow .20s ease,background .20s ease,border-color .20s ease;
+}
+.btn:hover,.icon-btn:hover,.nav-btn:hover,.today-btn:hover{transform:translateY(-2px)}
+.btn:active,.icon-btn:active,.nav-btn:active,.today-btn:active{transform:scale(.95)}
+.btn.primary{box-shadow:0 8px 24px rgba(37,99,235,.22)}
+.hero-card{border-color:rgba(212,169,79,.24)}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--sp-primary-2);
+  outline-offset:3px;
+}
+@media(max-width:767px){
+  .card,.hero-card,.stat-card{border-radius:18px}
+  .card:hover,.hero-card:hover,.stat-card:hover{transform:translateY(-2px)}
+  .btn,.icon-btn,.nav-btn,.today-btn{min-height:44px;touch-action:manipulation}
+}
+@media(max-width:360px){
+  .card,.hero-card,.stat-card{border-radius:16px}
+}
+@media(prefers-reduced-motion:reduce){
+  .card,.hero-card,.stat-card,.cal-cell{animation:none!important;transition:none!important}
+  .card:hover,.hero-card:hover,.stat-card:hover,.cal-cell.clickable:hover{transform:none}
+}
