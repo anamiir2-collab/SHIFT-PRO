@@ -1561,3 +1561,430 @@ button {
   border-radius: 50%;
 
   background: var(--panel);
+/* =========================================================
+   SHIFTPRO - Premium Cards & Calendar Animation
+   ========================================================= */
+
+/* ---------- حركة البطاقات ---------- */
+
+.card,
+.stat-card,
+.hero-card {
+  animation: cardEnter 0.6s cubic-bezier(.22,.61,.36,1) both;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.card:nth-child(1) { animation-delay: .05s; }
+.card:nth-child(2) { animation-delay: .10s; }
+.card:nth-child(3) { animation-delay: .15s; }
+.card:nth-child(4) { animation-delay: .20s; }
+
+.stat-card:nth-child(1) { animation-delay: .05s; }
+.stat-card:nth-child(2) { animation-delay: .10s; }
+.stat-card:nth-child(3) { animation-delay: .15s; }
+.stat-card:nth-child(4) { animation-delay: .20s; }
+
+@keyframes cardEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(25px) scale(.96);
+    filter: blur(4px);
+  }
+
+  70% {
+    transform: translateY(-3px) scale(1.01);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+
+/* ---------- حركة البطاقات عند اللمس ---------- */
+
+.card,
+.stat-card,
+.hero-card {
+  transition:
+    transform .3s cubic-bezier(.22,.61,.36,1),
+    box-shadow .3s ease,
+    border-color .3s ease,
+    filter .3s ease;
+}
+
+.card:hover,
+.stat-card:hover,
+.hero-card:hover {
+  transform: translateY(-6px) scale(1.015);
+  border-color: rgba(212,175,55,.55);
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.18),
+    0 0 25px rgba(212,175,55,.12);
+}
+
+.card:active,
+.stat-card:active,
+.hero-card:active {
+  transform: scale(.97);
+  transition-duration: .12s;
+}
+
+
+/* ---------- اللمعة الذهبية ---------- */
+
+.card::after,
+.stat-card::after,
+.hero-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 70%;
+  height: 100%;
+  pointer-events: none;
+
+  background: linear-gradient(
+    110deg,
+    transparent,
+    rgba(255,235,150,.18),
+    transparent
+  );
+
+  transform: skewX(-20deg);
+}
+
+.card:hover::after,
+.stat-card:hover::after,
+.hero-card:hover::after {
+  animation: goldShine .9s ease;
+}
+
+@keyframes goldShine {
+  0% {
+    left: -120%;
+  }
+
+  100% {
+    left: 150%;
+  }
+}
+
+
+/* =========================================================
+   CALENDAR
+   ========================================================= */
+
+
+/* ---------- دخول التقويم ---------- */
+
+.cal-nav,
+.cal-toolbar,
+.weekdays,
+.cal-grid {
+  animation: calendarEnter .55s cubic-bezier(.22,.61,.36,1) both;
+}
+
+@keyframes calendarEnter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ---------- خلايا التقويم ---------- */
+
+.cal-cell {
+  position: relative;
+  overflow: hidden;
+
+  animation: dayEnter .45s cubic-bezier(.22,.61,.36,1) both;
+
+  transition:
+    transform .28s cubic-bezier(.22,.61,.36,1),
+    box-shadow .28s ease,
+    border-color .28s ease,
+    filter .28s ease;
+
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+
+/* ظهور الأيام بالتتابع */
+
+.cal-cell:nth-child(1)  { animation-delay: .02s; }
+.cal-cell:nth-child(2)  { animation-delay: .04s; }
+.cal-cell:nth-child(3)  { animation-delay: .06s; }
+.cal-cell:nth-child(4)  { animation-delay: .08s; }
+.cal-cell:nth-child(5)  { animation-delay: .10s; }
+.cal-cell:nth-child(6)  { animation-delay: .12s; }
+.cal-cell:nth-child(7)  { animation-delay: .14s; }
+.cal-cell:nth-child(8)  { animation-delay: .16s; }
+.cal-cell:nth-child(9)  { animation-delay: .18s; }
+.cal-cell:nth-child(10) { animation-delay: .20s; }
+.cal-cell:nth-child(11) { animation-delay: .22s; }
+.cal-cell:nth-child(12) { animation-delay: .24s; }
+.cal-cell:nth-child(13) { animation-delay: .26s; }
+.cal-cell:nth-child(14) { animation-delay: .28s; }
+.cal-cell:nth-child(15) { animation-delay: .30s; }
+.cal-cell:nth-child(16) { animation-delay: .32s; }
+.cal-cell:nth-child(17) { animation-delay: .34s; }
+.cal-cell:nth-child(18) { animation-delay: .36s; }
+.cal-cell:nth-child(19) { animation-delay: .38s; }
+.cal-cell:nth-child(20) { animation-delay: .40s; }
+.cal-cell:nth-child(21) { animation-delay: .42s; }
+.cal-cell:nth-child(22) { animation-delay: .44s; }
+.cal-cell:nth-child(23) { animation-delay: .46s; }
+.cal-cell:nth-child(24) { animation-delay: .48s; }
+.cal-cell:nth-child(25) { animation-delay: .50s; }
+.cal-cell:nth-child(26) { animation-delay: .52s; }
+.cal-cell:nth-child(27) { animation-delay: .54s; }
+.cal-cell:nth-child(28) { animation-delay: .56s; }
+.cal-cell:nth-child(29) { animation-delay: .58s; }
+.cal-cell:nth-child(30) { animation-delay: .60s; }
+.cal-cell:nth-child(31) { animation-delay: .62s; }
+.cal-cell:nth-child(32) { animation-delay: .64s; }
+.cal-cell:nth-child(33) { animation-delay: .66s; }
+.cal-cell:nth-child(34) { animation-delay: .68s; }
+.cal-cell:nth-child(35) { animation-delay: .70s; }
+.cal-cell:nth-child(36) { animation-delay: .72s; }
+.cal-cell:nth-child(37) { animation-delay: .74s; }
+.cal-cell:nth-child(38) { animation-delay: .76s; }
+.cal-cell:nth-child(39) { animation-delay: .78s; }
+.cal-cell:nth-child(40) { animation-delay: .80s; }
+.cal-cell:nth-child(41) { animation-delay: .82s; }
+.cal-cell:nth-child(42) { animation-delay: .84s; }
+
+
+@keyframes dayEnter {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* ---------- حركة اليوم عند المرور عليه ---------- */
+
+.cal-cell:hover {
+  transform: translateY(-5px) scale(1.03);
+
+  border-color: rgba(212,175,55,.75);
+
+  box-shadow:
+    0 10px 25px rgba(0,0,0,.20),
+    0 0 20px rgba(212,175,55,.15);
+
+  z-index: 5;
+}
+
+
+/* ---------- لمعة داخل يوم التقويم ---------- */
+
+.cal-cell::before {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+
+  background: linear-gradient(
+    120deg,
+    transparent 20%,
+    rgba(255,236,160,.16) 50%,
+    transparent 80%
+  );
+
+  transform: translateX(-120%);
+  transition: transform .65s ease;
+}
+
+.cal-cell:hover::before {
+  transform: translateX(120%);
+}
+
+
+/* ---------- رقم اليوم ---------- */
+
+.cal-cell .num {
+  transition:
+    transform .25s ease,
+    text-shadow .25s ease;
+}
+
+.cal-cell:hover .num {
+  transform: scale(1.12);
+
+  text-shadow:
+    0 0 8px rgba(255,230,130,.45);
+}
+
+
+/* ---------- اليوم الحالي ---------- */
+
+.cal-cell.today {
+  border: 2px solid #d4af37 !important;
+
+  animation:
+    dayEnter .45s ease both,
+    todayGlow 2.2s ease-in-out infinite;
+
+  box-shadow:
+    0 0 0 3px rgba(212,175,55,.12),
+    0 8px 22px rgba(212,175,55,.18);
+}
+
+@keyframes todayGlow {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 3px rgba(212,175,55,.10),
+      0 8px 22px rgba(212,175,55,.15);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 6px rgba(212,175,55,.20),
+      0 10px 30px rgba(212,175,55,.28);
+  }
+}
+
+
+/* ---------- اليوم المحدد ---------- */
+
+.cal-cell.selected {
+  border-color: #d4af37 !important;
+
+  transform: translateY(-3px) scale(1.02);
+
+  box-shadow:
+    0 0 0 3px rgba(212,175,55,.18),
+    0 8px 25px rgba(212,175,55,.20);
+
+  animation: selectedDay .4s ease both;
+}
+
+@keyframes selectedDay {
+  0% {
+    transform: scale(.88);
+  }
+
+  70% {
+    transform: scale(1.04);
+  }
+
+  100% {
+    transform: translateY(-3px) scale(1.02);
+  }
+}
+
+
+/* ---------- شارات الحضور ---------- */
+
+.cal-cell .badge {
+  animation: badgePop .4s cubic-bezier(.22,.61,.36,1) both;
+}
+
+@keyframes badgePop {
+
+  from {
+    opacity: 0;
+    transform: scale(.4) rotate(-20deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+
+/* ---------- أزرار الشهر ---------- */
+
+.cal-nav .nav-btn {
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease,
+    border-color .25s ease;
+}
+
+.cal-nav .nav-btn:hover {
+  transform: scale(1.1);
+
+  border-color: #d4af37;
+
+  box-shadow:
+    0 5px 18px rgba(0,0,0,.18),
+    0 0 15px rgba(212,175,55,.18);
+}
+
+.cal-nav .nav-btn:active {
+  transform: scale(.88);
+}
+
+
+/* ---------- أسماء أيام الأسبوع ---------- */
+
+.weekdays span {
+  transition:
+    transform .25s ease,
+    color .25s ease,
+    border-color .25s ease;
+}
+
+.weekdays span:hover {
+  transform: translateY(-2px);
+
+  color: #d4af37;
+
+  border-color: rgba(212,175,55,.45);
+}
+
+
+/* ---------- تأثير اللمس للموبايل ---------- */
+
+@media (hover: none) {
+
+  .card:active,
+  .stat-card:active,
+  .hero-card:active {
+    transform: scale(.97);
+  }
+
+  .cal-cell:active {
+    transform: scale(.94);
+  }
+
+}
+
+
+/* ---------- تقليل الحركة لو الجهاز طالب كده ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+
+}
