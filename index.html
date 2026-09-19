@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark" data-fontsize="medium">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=5.0">
+  <meta name="description" content="ShiftPro - تطبيق متكامل لإدارة الورديات والحضور وساعات العمل والرواتب. يعمل بدون إنترنت.">
+  <meta name="theme-color" content="#2563eb" id="metaTheme">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ShiftPro">
+  <title>ShiftPro | إدارة الورديات والحضور</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="favicon-32.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ SPLASH SCREEN ============ -->
+<div id="splash" aria-label="ShiftPro">
+  <div class="sp-stars"></div>
+  <div class="sp-orb one"></div>
+  <div class="sp-orb two"></div>
+  <div class="sp-content">
+    <div class="sp-logo" aria-hidden="true">
+      <div class="sp-ring"></div>
+      <div class="sp-clock">
+        <div class="sp-sun"></div>
+        <div class="sp-moon"></div>
+        <div class="sp-hand"></div>
+        <div class="sp-hand short"></div>
+        <div class="sp-center"></div>
+      </div>
+    </div>
+    <h1 class="sp-brand" aria-label="SHIFT PRO"><span>SHIFT</span><span>PRO</span></h1>
+    <p class="sp-tagline">وقتك محسوب.. وشغلك منظم</p>
+    <p class="sp-credit">v2.0 — Designed &amp; Developed by Amir Anwar</p>
+    <div class="sp-progress" aria-hidden="true"><span></span></div>
+  </div>
+</div>
+
+<!-- ============ TOP BAR ============ -->
+<header class="topbar">
+  <div class="brand">
+    <span class="app-name">ShiftPro</span>
+    <span class="name" id="workerName">—</span>
+  </div>
+  <div class="actions">
+    <button class="icon-btn" id="searchBtn" aria-label="بحث">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+    </button>
+    <button class="icon-btn" id="themeBtn" aria-label="تبديل الوضع">
+      <svg viewBox="0 0 24 24" id="themeIcon"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"></path></svg>
+    </button>
+  </div>
+</header>
+
+<!-- ============ PAGE: DASHBOARD ============ -->
+<section class="page active" id="page-dashboard" data-tab="dashboard">
+  <div class="hero-card" id="heroCard">
+    <p class="greeting" id="greetingText">صباح الخير</p>
+    <h2 class="name" id="heroName">—</h2>
+    <div class="row gap-2 wrap" id="todayStatusPills">
+      <!-- Filled by JS -->
+    </div>
+    <div class="date-row">
+      <span id="todayGregorian">—</span>
+      <span class="hijri" id="todayHijri">—</span>
+    </div>
+  </div>
+
+  <div class="row gap-2 mb-3" id="checkinActions">
+    <button class="btn-checkin grow" id="checkinBtn" aria-label="تسجيل حضور">
+      <span class="ico">
+        <svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"></path></svg>
+      </span>
+      <span class="text">
+        <span class="t1">تسجيل حضور اليوم</span>
+        <span class="t2" id="checkinTime">اضغط للتسجيل الآن</span>
+      </span>
+    </button>
+  </div>
+  <div class="row gap-2 mb-3" id="checkoutActions" hidden>
+    <button class="btn-checkout grow" id="checkoutBtn" aria-label="تسجيل انصراف">
+      <span class="ico">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"></path></svg>
+      </span>
+      <span class="text">
+        <span class="t1">تسجيل انصراف</span>
+        <span class="t2" id="checkoutTime">اضغط للتسجيل الآن</span>
+      </span>
+    </button>
+  </div>
+
+  <div class="card">
+    <p class="card-title">
+      <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
+      ملخص اليوم
+    </p>
+    <div class="row between mb-2">
+      <span class="muted fs-sm">ساعات اليوم</span>
+      <strong id="todayHours" class="fs-lg accent">0 س</strong>
+    </div>
+    <div class="row between mb-2">
+      <span class="muted fs-sm">المطلوب</span>
+      <strong id="todayRequired" class="text-2">0 س</strong>
+    </div>
+    <div class="row between mb-2">
+      <span class="muted fs-sm">الإضافي</span>
+      <strong id="todayOvertime" class="success">0 س</strong>
+    </div>
+    <div class="divider"></div>
+    <div class="row between">
+      <span class="muted fs-sm">قيمة اليوم</span>
+      <strong id="todayValue" class="fs-lg fw-bold">0 ج</strong>
+    </div>
+  </div>
+
+  <div class="stat-grid" id="dashboardStats">
+    <div class="stat-card success">
+      <p class="label">أيام الحضور</p>
+      <p class="value" id="statPresent">0</p>
+      <div class="ico-bg"></div>
+    </div>
+    <div class="stat-card accent">
+      <p class="label">مطبق (24س)</p>
+      <p class="value" id="statDouble">0</p>
+      <div class="ico-bg"></div>
+    </div>
+    <div class="stat-card warning">
+      <p class="label">إجازات</p>
+      <p class="value" id="statLeave">0</p>
+      <div class="ico-bg"></div>
+    </div>
+    <div class="stat-card danger">
+      <p class="label">غياب</p>
+      <p class="value" id="statAbsent">0</p>
+      <div class="ico-bg"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">
+      <span class="ico"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"></path><path d="M7 14l4-4 3 3 5-6"></path></svg></span>
+      نسبة الالتزام
+    </p>
+    <div class="row between mb-2">
+      <span class="fs-sm muted">نسبة الحضور هذا الشهر</span>
+      <strong id="compliancePct" class="fs-lg accent">0%</strong>
+    </div>
+    <div class="progress"><span id="complianceBar" style="width:0%"></span></div>
+    <div class="row between mt-2">
+      <span class="fs-sm muted">الراتب المستحق حتى الآن</span>
+      <strong id="dueSalary" class="fs-lg success">0 ج</strong>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PAGE: CALENDAR ============ -->
+<section class="page" id="page-calendar" data-tab="calendar">
+  <div class="cal-nav">
+    <button class="nav-btn" id="prevBtn" aria-label="السابق">›</button>
+    <div class="month-label" id="monthLabel">—</div>
+    <button class="nav-btn" id="nextBtn" aria-label="التالي">‹</button>
+  </div>
+  <div class="row gap-2 mb-3">
+    <button class="today-btn" id="todayBtn">اليوم</button>
+    <button class="btn ghost sm" id="patternBtn">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h12"></path></svg>
+      نمط الورديات
+    </button>
+    <button class="btn ghost sm" id="clearSelectBtn" hidden>إلغاء التحديد</button>
+  </div>
+
+  <div class="cal-toolbar" id="calToolbar">
+    <span class="sel-count" id="selCount">0 يوم محدد</span>
+    <button class="btn sm primary" id="applyShiftToSelected">تطبيق وردية</button>
+    <button class="btn sm danger" id="clearSelected">مسح</button>
+  </div>
+
+  <div class="weekdays" id="weekdaysRow">
+    <span>أحد</span><span>إثنين</span><span>ثلاثاء</span><span>أربعاء</span><span>خميس</span><span>جمعة</span><span>سبت</span>
+  </div>
+  <div class="cal-grid" id="calGrid"></div>
+
+  <div class="legend" id="shiftLegend"></div>
+  <div class="legend">
+    <span><i class="dot" style="background:var(--present)"></i> حضرت</span>
+    <span><i class="dot" style="background:var(--double)"></i> مطبق (24س)</span>
+    <span><i class="dot" style="background:var(--leave)"></i> إجازة</span>
+    <span><i class="dot" style="background:var(--absent)"></i> غياب</span>
+  </div>
+  <p class="hint">اضغط على أي يوم لتحديد نوع الوردية وتسجيل الحضور. اضغط مطولاً لتحديد عدة أيام وتطبيق وردية عليها دفعة واحدة.</p>
+</section>
+
+<!-- ============ PAGE: SALARY ============ -->
+<section class="page" id="page-salary" data-tab="salary">
+  <div class="cal-nav">
+    <button class="nav-btn" id="prevPeriodBtn" aria-label="السابق">›</button>
+    <div class="month-label" id="periodLabel">—</div>
+    <button class="nav-btn" id="nextPeriodBtn" aria-label="التالي">‹</button>
+  </div>
+  <p class="hint">دورة الصرف من يوم <span id="cycleStartLbl">26</span> إلى <span id="cycleEndLbl">25</span> من الشهر التالي.</p>
+
+  <div class="card">
+    <p class="card-title">تفاصيل الحضور في الفترة</p>
+    <div class="row between mb-2"><span class="fs-sm muted">أيام حضور عادي</span><strong id="pA">0</strong></div>
+    <div class="row between mb-2"><span class="fs-sm muted">أيام مطبق (24س)</span><strong id="pX">0</strong></div>
+    <div class="row between mb-2"><span class="fs-sm muted">أيام إجازة</span><strong id="pL">0</strong></div>
+    <div class="row between"><span class="fs-sm muted">أيام غياب</span><strong id="pB">0</strong></div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">إجمالي الساعات</p>
+    <div class="row between mb-2"><span class="fs-sm muted">ساعات أساسية</span><strong id="pBaseHours">0 س</strong></div>
+    <div class="row between mb-2"><span class="fs-sm muted">ساعات إضافية</span><strong class="success" id="pOvertimeHours">0 س</strong></div>
+    <div class="divider"></div>
+    <div class="row between"><span class="fs-sm muted fw-bold">الإجمالي</span><strong class="fs-lg accent" id="pHours">0 س</strong></div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">حساب الراتب</p>
+    <div class="row between mb-2"><span class="fs-sm muted">سعر الساعة</span><strong id="pRate">0 ج/س</strong></div>
+    <div class="row between mb-2"><span class="fs-sm muted">سعر الإضافي</span><strong id="pOvertimeRate">0 ج/س</strong></div>
+    <div class="divider"></div>
+    <div class="row between mb-2"><span class="fs-sm muted">الراتب الأساسي</span><strong id="pBaseSalary">0 ج</strong></div>
+    <div class="row between mb-2"><span class="fs-sm muted">+ الإضافي</span><strong class="success" id="pOvertimeValue">0 ج</strong></div>
+    <div class="row between mb-2"><span class="fs-sm muted">+ المكافآت</span><strong class="success" id="pBonus">0 ج</strong></div>
+    <div class="row between mb-2"><span class="fs-sm muted">+ البدلات</span><strong class="success" id="pAllowance">0 ج</strong></div>
+    <div class="row between mb-2"><span class="fs-sm muted">− الخصومات</span><strong class="danger" id="pDeduction">0 ج</strong></div>
+    <div class="row between mb-2"><span class="fs-sm muted">− السلف</span><strong class="danger" id="pAdvance">0 ج</strong></div>
+    <div class="divider"></div>
+    <div class="row between">
+      <span class="fw-bold">صافي المستحق</span>
+      <strong class="fs-xl accent" id="pTotal">0 ج</strong>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">المكافآت والخصومات (هذه الفترة)</p>
+    <div id="adjustmentsList"></div>
+    <button class="btn ghost sm block mt-2" id="addAdjustmentBtn">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
+      إضافة بند
+    </button>
+  </div>
+
+  <p class="hint">أي يوم مسجل عليه "حضرت" أو "مطبق" أو "إجازة" يدخل في الحساب. الأيام غير المسجلة لا تُحسب حتى لو كانت مجدولة كوردية عمل.</p>
+</section>
+
+<!-- ============ PAGE: REPORTS ============ -->
+<section class="page" id="page-reports" data-tab="reports">
+  <div class="cal-nav">
+    <button class="nav-btn" id="prevReportBtn" aria-label="السابق">›</button>
+    <div class="month-label" id="reportPeriodLabel">—</div>
+    <button class="nav-btn" id="nextReportBtn" aria-label="التالي">‹</button>
+  </div>
+
+  <div class="row gap-2 mb-3" style="overflow-x:auto;">
+    <button class="btn ghost sm" data-report-range="daily">يومي</button>
+    <button class="btn ghost sm" data-report-range="weekly">أسبوعي</button>
+    <button class="btn ghost sm active" data-report-range="cycle">دورة الراتب</button>
+    <button class="btn ghost sm" data-report-range="custom">مخصص</button>
+  </div>
+
+  <div class="card" id="customRangeCard" hidden>
+    <div class="field-row">
+      <div class="field"><label>من تاريخ</label><input type="date" id="customFrom"></div>
+      <div class="field"><label>إلى تاريخ</label><input type="date" id="customTo"></div>
+    </div>
+    <button class="btn primary block sm" id="applyCustomRange">تطبيق</button>
+  </div>
+
+  <div class="card">
+    <p class="card-title">ملخص الفترة</p>
+    <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);gap:8px;">
+      <div class="stat-card"><p class="label">عمل</p><p class="value" id="rWorkDays">0</p></div>
+      <div class="stat-card"><p class="label">حضور</p><p class="value" id="rPresent" style="color:var(--success);">0</p></div>
+      <div class="stat-card"><p class="label">غياب</p><p class="value" id="rAbsent" style="color:var(--danger);">0</p></div>
+      <div class="stat-card"><p class="label">إجازة</p><p class="value" id="rLeave" style="color:var(--warning);">0</p></div>
+      <div class="stat-card"><p class="label">مطبق</p><p class="value" id="rDouble" style="color:var(--double);">0</p></div>
+      <div class="stat-card"><p class="label">ساعات</p><p class="value" id="rTotalHours" style="color:var(--accent);">0</p></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">توزيع الحضور</p>
+    <div class="donut-wrap">
+      <svg viewBox="0 0 120 120" id="attendanceDonut">
+        <circle cx="60" cy="60" r="48" fill="none" stroke="var(--panel-3)" stroke-width="14"></circle>
+        <g id="donutSegments"></g>
+        <text x="60" y="58" text-anchor="middle" class="donut-center-val" id="donutCenterVal" font-size="18" font-weight="900" fill="var(--text)">0</text>
+        <text x="60" y="76" text-anchor="middle" font-size="9" fill="var(--muted)">إجمالي</text>
+      </svg>
+      <div class="donut-legend" id="donutLegend"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">ساعات العمل اليومية</p>
+    <div class="bar-chart" id="hoursBarChart"></div>
+  </div>
+
+  <div class="report-print-header">
+    <h2>تقرير ShiftPro</h2>
+    <p id="printPeriod"></p>
+    <p id="printWorker"></p>
+  </div>
+
+  <div class="row gap-2 mb-3 nav-print-hide" style="flex-wrap:wrap;">
+    <button class="btn primary sm grow" id="exportCsvBtn">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M8 13h8M8 17h5"></path></svg>
+      Excel / CSV
+    </button>
+    <button class="btn ghost sm grow" id="exportJsonBtn">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>
+      JSON
+    </button>
+    <button class="btn ghost sm grow" id="printBtn">
+      <svg viewBox="0 0 24 24"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"></path></svg>
+      طباعة / PDF
+    </button>
+  </div>
+
+  <div class="table-wrap">
+    <table class="tbl" id="reportTable">
+      <thead>
+        <tr><th>اليوم</th><th>التاريخ</th><th>المجدول</th><th>الحالة</th><th>الوقت</th><th>الساعات</th><th>القيمة</th></tr>
+      </thead>
+      <tbody id="reportTableBody"></tbody>
+      <tfoot>
+        <tr><td colspan="5">الإجمالي</td><td id="reportTotalHours">0</td><td id="reportTotalValue">0</td></tr>
+      </tfoot>
+    </table>
+  </div>
+  <p class="hint">تصدير PDF يفتح نافذة الطباعة — اختر "حفظ كـ PDF" من قائمة الطابعات. تصدير JSON يحفظ نسخة احتياطية كاملة.</p>
+</section>
+
+<!-- ============ PAGE: MORE (settings hub) ============ -->
+<section class="page" id="page-more" data-tab="more">
+  <div class="card">
+    <p class="card-title">الإعدادات والمزيد</p>
+    <div class="section-list" id="moreList">
+      <button class="item" data-sheet="settings">
+        <span class="ico-box"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14 3h-4l-.5 2.7a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 2 1.2L10 21h4l.5-2.7a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"></path></svg></span>
+        <span class="label">الإعدادات العامة</span>
+        <span class="chev"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></span>
+      </button>
+      <button class="item" data-sheet="shifts">
+        <span class="ico-box"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span>
+        <span class="label">إدارة الورديات</span>
+        <span class="chev"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></span>
+      </button>
+      <button class="item" data-sheet="leave">
+        <span class="ico-box"><svg viewBox="0 0 24 24"><path d="M3 7h18v13H3zM3 7l3-3h12l3 3M8 12h8"></path></svg></span>
+        <span class="label">الإجازات والأرصدة</span>
+        <span class="chev"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></span>
+      </button>
+      <button class="item" data-sheet="stats">
+        <span class="ico-box"><svg viewBox="0 0 24 24"><path d="M3 3v18h18M7 14l4-4 3 3 5-6"></path></svg></span>
+        <span class="label">الإحصائيات المتقدمة</span>
+        <span class="chev"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></span>
+      </button>
+      <button class="item" data-sheet="backup">
+        <span class="ico-box"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"></path></svg></span>
+        <span class="label">النسخ الاحتياطي</span>
+        <span class="chev"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></span>
+      </button>
+      <button class="item" data-sheet="about">
+        <span class="ico-box"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4M12 16h.01"></path></svg></span>
+        <span class="label">عن التطبيق</span>
+        <span class="chev"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"></path></svg></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="credit">
+    <div class="avatar">أ</div>
+    <div class="info">
+      <p class="made">تصميم وتطوير</p>
+      <p class="nm">أمير أنور</p>
+      <a href="tel:01066227553">01066227553</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BOTTOM NAVIGATION ============ -->
+<nav class="tabbar" id="tabbar">
+  <button class="tab-btn active" data-tab="dashboard" aria-label="الرئيسية">
+    <span class="ic"><svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9M5 10v10h14V10"></path></svg></span>
+    الرئيسية
+  </button>
+  <button class="tab-btn" data-tab="calendar" aria-label="التقويم">
+    <span class="ic"><svg viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="15" rx="3"></rect><path d="M7 3.5v4M17 3.5v4M3.5 9.5h17"></path></svg></span>
+    التقويم
+  </button>
+  <button class="tab-btn" data-tab="salary" aria-label="الراتب">
+    <span class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"></circle><path d="M12 7.5v9M15 9.2c-.7-.8-1.7-1.2-3-1.2-1.7 0-2.8.8-2.8 2s1.1 2 2.8 2 2.8.8 2.8 2-1.1 2-2.8 2c-1.3 0-2.4-.4-3.1-1.2"></path></svg></span>
+    الراتب
+  </button>
+  <button class="tab-btn" data-tab="reports" aria-label="التقارير">
+    <span class="ic"><svg viewBox="0 0 24 24"><path d="M6 3.5h8l4 4v13H6z"></path><path d="M14 3.5v4h4M9 12h6M9 15.5h6M9 19h4"></path></svg></span>
+    التقارير
+  </button>
+  <button class="tab-btn" data-tab="more" aria-label="المزيد">
+    <span class="ic"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg></span>
+    المزيد
+  </button>
+</nav>
+
+<!-- ============ SHEET: DAY DETAILS ============ -->
+<div class="sheet-overlay" id="dayOverlay"></div>
+<div class="sheet" id="daySheet" role="dialog" aria-labelledby="daySheetTitle">
+  <h3 id="daySheetTitle">اليوم</h3>
+  <p class="sub hijri" id="daySheetHijri"></p>
+  <p class="sub" id="daySheetSub"></p>
+
+  <p class="card-title">نوع الوردية لهذا اليوم</p>
+  <div class="row gap-2 wrap" id="shiftPicker">
+    <!-- Filled by JS based on available shift types -->
+  </div>
+  <button class="btn ghost sm block mt-2" id="schClearBtn">مسح نوع الوردية</button>
+
+  <div class="sheet-divider"></div>
+
+  <p class="card-title">الحضور الفعلي</p>
+  <div class="row gap-2 mb-2">
+    <button class="btn-checkin grow" id="markPresentBtn">
+      <span class="ico"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"></path></svg></span>
+      <span class="text"><span class="t1">حضرت</span><span class="t2">تسجيل حضور</span></span>
+    </button>
+  </div>
+  <div class="field-row mb-2">
+    <div class="field"><label>من الساعة</label><input type="time" id="inpFrom"></div>
+    <div class="field"><label>إلى الساعة</label><input type="time" id="inpTo"></div>
+  </div>
+  <p class="hint" id="durationPreview" style="margin:0 0 12px;min-height:18px;color:var(--accent);font-weight:700;"></p>
+
+  <div class="sheet-actions full-3 mb-2">
+    <button class="btn success sm" id="btnX">مطبق 24س</button>
+    <button class="btn sm" id="btnL" style="background:rgba(245,158,11,.18);color:var(--leave);border-color:rgba(245,158,11,.4);">إجازة</button>
+    <button class="btn danger sm" id="btnB">غياب</button>
+  </div>
+
+  <div class="field">
+    <label>نوع الإجازة (اختياري)</label>
+    <select id="inpLeaveType" disabled>
+      <option value="">— اختر —</option>
+      <option value="annual">سنوية</option>
+      <option value="casual">عارضة</option>
+      <option value="sick">مرضية</option>
+      <option value="unpaid">بدون راتب</option>
+      <option value="periodic">دورية</option>
+      <option value="other">أخرى</option>
+    </select>
+  </div>
+
+  <div class="field">
+    <label>ملاحظة اليوم</label>
+    <textarea id="inpNote" placeholder="أضف ملاحظة (اختياري)"></textarea>
+  </div>
+  <div class="field">
+    <label>مكان العمل (اختياري)</label>
+    <input type="text" id="inpLocation" placeholder="مثال: المقر الرئيسي">
+  </div>
+  <div class="field">
+    <label>سبب الغياب (اختياري)</label>
+    <input type="text" id="inpAbsenceReason" placeholder="سبب الغياب" disabled>
+  </div>
+
+  <div class="sheet-divider"></div>
+  <div class="row between mb-2">
+    <span class="fs-sm muted">ساعات فعلية</span>
+    <strong id="daySheetHours">0 س</strong>
+  </div>
+  <div class="row between mb-2">
+    <span class="fs-sm muted">ساعات إضافية</span>
+    <strong class="success" id="daySheetOvertime">0 س</strong>
+  </div>
+  <div class="row between mb-2">
+    <span class="fs-sm muted">تأخير (دقيقة)</span>
+    <strong class="warning" id="daySheetLate">0</strong>
+  </div>
+  <div class="row between mb-3">
+    <span class="fs-sm muted">انصراف مبكر (دقيقة)</span>
+    <strong class="danger" id="daySheetEarly">0</strong>
+  </div>
+
+  <div class="sheet-actions">
+    <button class="btn primary" id="saveDayBtn">حفظ</button>
+    <button class="btn danger" id="deleteDayBtn">حذف التسجيل</button>
+  </div>
+  <button class="btn ghost sm block mt-2" id="copyDayBtn">
+    <svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path></svg>
+    نسخ تسجيل هذا اليوم لأيام أخرى
+  </button>
+</div>
+
+<!-- ============ SHEET: SETTINGS ============ -->
+<div class="sheet-overlay" id="settingsOverlay"></div>
+<div class="sheet" id="settingsSheet" role="dialog">
+  <h3>الإعدادات</h3>
+  <p class="sub">بيانات الموظف والراتب ودورة الصرف والمظهر والإشعارات</p>
+
+  <p class="card-title">بيانات الموظف</p>
+  <div class="field"><label>الاسم</label><input type="text" id="inpName" placeholder="اكتب الاسم"></div>
+  <div class="field-row">
+    <div class="field"><label>الوظيفة</label><input type="text" id="inpJob" placeholder="مثال: أمين مخزن"></div>
+    <div class="field"><label>رقم الموظف</label><input type="text" id="inpEmployeeId" placeholder="اختياري"></div>
+  </div>
+  <div class="field"><label>الشركة</label><input type="text" id="inpCompany" placeholder="اسم الشركة"></div>
+
+  <div class="sheet-divider"></div>
+  <p class="card-title">الراتب</p>
+  <div class="field">
+    <label>طريقة حساب الراتب</label>
+    <select id="inpSalaryMethod">
+      <option value="monthly">راتب شهري ثابت</option>
+      <option value="hourly">أجر بالساعة</option>
+      <option value="daily">أجر باليوم</option>
+      <option value="shift">أجر بالوردية</option>
+    </select>
+  </div>
+  <div class="field"><label>الراتب الشهري الأساسي (جنيه)</label><input type="number" id="inpSalary" placeholder="6000"></div>
+  <div class="field-row">
+    <div class="field"><label>ساعات العمل الشهرية</label><input type="number" id="inpMonthlyHours" placeholder="208"></div>
+    <div class="field"><label>ساعات الوردية</label><input type="number" id="inpShiftHours" placeholder="12"></div>
+  </div>
+  <div class="field"><label>سعر الساعة اليدوي (0 = حساب تلقائي)</label><input type="number" id="inpHourlyRate" placeholder="0"></div>
+
+  <div class="sheet-divider"></div>
+  <p class="card-title">الساعات الإضافية</p>
+  <div class="setting-row">
+    <div class="meta"><div class="t1">تفعيل حساب الإضافي</div><div class="t2">حساب ساعات ما بعد المطلوب</div></div>
+    <label class="switch"><input type="checkbox" id="inpOvertimeEnabled" checked><span class="slider"></span></label>
+  </div>
+  <div class="field"><label>معامل الإضافي (مثال: 1.5)</label><input type="number" id="inpOvertimeRate" step="0.1" value="1.5" placeholder="1.5"></div>
+  <div class="field"><label>عتبة الإضافي (0 = بعد ساعات الوردية)</label><input type="number" id="inpOvertimeAfterHours" placeholder="0"></div>
+
+  <div class="sheet-divider"></div>
+  <p class="card-title">الخصومات</p>
+  <div class="setting-row">
+    <div class="meta"><div class="t1">خصم الغياب</div><div class="t2">خصم قيمة اليوم عن كل يوم غياب</div></div>
+    <label class="switch"><input type="checkbox" id="inpDeductAbsence" checked><span class="slider"></span></label>
+  </div>
+  <div class="setting-row">
+    <div class="meta"><div class="t1">خصم التأخير</div><div class="t2">خصم قيمة التأخير عن وقت البداية</div></div>
+    <label class="switch"><input type="checkbox" id="inpDeductLate"><span class="slider"></span></label>
+  </div>
+  <div class="field"><label>سماح التأخير (دقائق)</label><input type="number" id="inpLateGrace" placeholder="0" value="0"></div>
+
+  <div class="sheet-divider"></div>
+  <p class="card-title">دورة صرف الراتب</p>
+  <div class="field"><label>يوم بداية الدورة (1-28)</label><input type="number" id="inpCycleDay" min="1" max="28" placeholder="26"></div>
+
+  <div class="sheet-divider"></div>
+  <p class="card-title">المظهر</p>
+  <div class="field">
+    <label>الوضع</label>
+    <select id="inpTheme">
+      <option value="auto">تلقائي (حسب الجهاز)</option>
+      <option value="dark">داكن</option>
+      <option value="light">نهاري</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>حجم الخط</label>
+    <select id="inpFontSize">
+      <option value="small">صغير</option>
+      <option value="medium" selected>متوسط</option>
+      <option value="large">كبير</option>
+    </select>
+  </div>
+
+  <div class="sheet-divider"></div>
+  <p class="card-title">الإشعارات (محلية)</p>
+  <div class="setting-row">
+    <div class="meta"><div class="t1">تذكير بتسجيل الحضور</div></div>
+    <label class="switch"><input type="checkbox" id="inpNotifyCheckIn"><span class="slider"></span></label>
+  </div>
+  <div class="field"><label>وقت تذكير الحضور</label><input type="time" id="inpNotifyCheckInTime" value="07:00"></div>
+  <div class="setting-row">
+    <div class="meta"><div class="t1">تذكير بتسجيل الانصراف</div></div>
+    <label class="switch"><input type="checkbox" id="inpNotifyCheckOut"><span class="slider"></span></label>
+  </div>
+  <div class="field"><label>وقت تذكير الانصراف</label><input type="time" id="inpNotifyCheckOutTime" value="19:00"></div>
+  <div class="setting-row">
+    <div class="meta"><div class="t1">تذكير بنهاية الوردية</div></div>
+    <label class="switch"><input type="checkbox" id="inpNotifyShiftEnd"><span class="slider"></span></label>
+  </div>
+
+  <div class="sheet-divider"></div>
+  <button class="btn primary block lg" id="saveSettingsBtn">حفظ الإعدادات</button>
+  <button class="btn ghost block sm mt-2" id="closeSettingsBtn">إغلاق</button>
+</div>
+
+<!-- ============ SHEET: SHIFT MANAGER ============ -->
+<div class="sheet-overlay" id="shiftsOverlay"></div>
+<div class="sheet" id="shiftsSheet" role="dialog">
+  <h3>إدارة الورديات</h3>
+  <p class="sub">أضف أو عدّل أنواع الورديات المخصصة</p>
+  <div id="shiftsList"></div>
+  <button class="btn primary block sm mt-2" id="addShiftBtn">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
+    إضافة وردية جديدة
+  </button>
+  <div class="sheet-divider"></div>
+  <p class="card-title">نمط الورديات المتكرر</p>
+  <p class="hint">اختر تسلسل الورديات ويوم البداية، وسيُطبّق تلقائيًا على الأيام القادمة (يمكنك تعديل أي يوم يدويًا بعد ذلك).</p>
+  <div id="patternEditor">
+    <div class="field"><label>يوم بداية النمط</label><input type="date" id="patternStart"></div>
+    <div class="field"><label>تسلسل الورديات (مفصول بفاصلة)</label><input type="text" id="patternSeq" placeholder="D,N,O" dir="ltr"></div>
+    <div class="row gap-2">
+      <button class="btn primary grow sm" id="applyPatternBtn">تطبيق على 30 يوم</button>
+      <button class="btn ghost sm" id="clearPatternBtn">مسح النمط</button>
+    </div>
+  </div>
+  <button class="btn ghost block sm mt-3" id="closeShiftsBtn">إغلاق</button>
+</div>
+
+<!-- ============ SHEET: SHIFT EDITOR ============ -->
+<div class="sheet-overlay" id="shiftEditOverlay"></div>
+<div class="sheet" id="shiftEditSheet" role="dialog">
+  <h3 id="shiftEditTitle">وردية جديدة</h3>
+  <div class="field"><label>اسم الوردية</label><input type="text" id="shiftName" placeholder="مثال: نهار 12 ساعة"></div>
+  <div class="field"><label>الرمز (حرف أو حرفان)</label><input type="text" id="shiftCode" placeholder="D" maxlength="3" dir="ltr"></div>
+  <div class="field-row">
+    <div class="field"><label>وقت البداية</label><input type="time" id="shiftStart"></div>
+    <div class="field"><label>وقت النهاية</label><input type="time" id="shiftEnd"></div>
+  </div>
+  <div class="field"><label>عدد الساعات (0 = حساب تلقائي)</label><input type="number" id="shiftHours" placeholder="0"></div>
+  <div class="field"><label>اللون</label><input type="color" id="shiftColor" value="#3b82f6" style="width:100%;height:44px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--panel-2);"></div>
+  <div class="setting-row">
+    <div class="meta"><div class="t1">يُعتبر يوم عمل</div><div class="t2">يدخل في حساب الراتب</div></div>
+    <label class="switch"><input type="checkbox" id="shiftIsWorkDay" checked><span class="slider"></span></label>
+  </div>
+  <div class="sheet-actions mt-2">
+    <button class="btn primary" id="saveShiftBtn">حفظ</button>
+    <button class="btn ghost" id="cancelShiftBtn">إلغاء</button>
+  </div>
+</div>
+
+<!-- ============ SHEET: LEAVE BALANCE ============ -->
+<div class="sheet-overlay" id="leaveOverlay"></div>
+<div class="sheet" id="leaveSheet" role="dialog">
+  <h3>الإجازات والأرصدة</h3>
+  <p class="sub">حدد رصيد كل نوع إجازة وعدد الأيام المستخدمة</p>
+  <div id="leaveBalanceList"></div>
+  <div class="sheet-divider"></div>
+  <p class="card-title">سجل الإجازات المسجلة</p>
+  <div id="leaveRecordsList"></div>
+  <button class="btn ghost block sm mt-3" id="closeLeaveBtn">إغلاق</button>
+</div>
+
+<!-- ============ SHEET: STATS ============ -->
+<div class="sheet-overlay" id="statsOverlay"></div>
+<div class="sheet" id="statsSheet" role="dialog">
+  <h3>الإحصائيات المتقدمة</h3>
+  <p class="sub">اختر الفترة ثم اعرض الإحصائيات</p>
+  <div class="field-row mb-3">
+    <div class="field"><label>من</label><input type="date" id="statsFrom"></div>
+    <div class="field"><label>إلى</label><input type="date" id="statsTo"></div>
+  </div>
+  <button class="btn primary block sm mb-3" id="applyStatsRange">تطبيق</button>
+  <div id="statsContent"></div>
+  <button class="btn ghost block sm mt-3" id="closeStatsBtn">إغلاق</button>
+</div>
+
+<!-- ============ SHEET: BACKUP ============ -->
+<div class="sheet-overlay" id="backupOverlay"></div>
+<div class="sheet" id="backupSheet" role="dialog">
+  <h3>النسخ الاحتياطي والاستعادة</h3>
+  <p class="sub">صدّر بياناتك أو استعدها أو احذفها نهائيًا</p>
+
+  <button class="btn primary block sm mb-2" id="exportBackupBtn">
+    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path></svg>
+    تصدير نسخة احتياطية (JSON)
+  </button>
+
+  <button class="btn ghost block sm mb-2" id="importBackupBtn">
+    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg>
+    استيراد نسخة احتياطية
+  </button>
+  <input type="file" id="importBackupInput" accept=".json,application/json" hidden>
+
+  <div class="sheet-divider"></div>
+  <p class="card-title danger">منطقة الخطر</p>
+  <button class="btn ghost block sm mb-2" id="resetSettingsBtn">استعادة الإعدادات الافتراضية</button>
+  <button class="btn danger block sm" id="deleteAllBtn">
+    <svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path></svg>
+    حذف جميع البيانات
+  </button>
+  <button class="btn ghost block sm mt-3" id="closeBackupBtn">إغلاق</button>
+</div>
+
+<!-- ============ SHEET: ABOUT ============ -->
+<div class="sheet-overlay" id="aboutOverlay"></div>
+<div class="sheet" id="aboutSheet" role="dialog">
+  <h3>عن ShiftPro</h3>
+  <p class="sub">تطبيق متكامل لإدارة الورديات والحضور وساعات العمل والرواتب</p>
+  <div class="card compact">
+    <div class="row between mb-2"><span class="muted">الإصدار</span><strong>2.0.0</strong></div>
+    <div class="row between mb-2"><span class="muted">يعمل بدون إنترنت</span><strong class="success">نعم</strong></div>
+    <div class="row between mb-2"><span class="muted">قابل للتثبيت</span><strong class="success">PWA</strong></div>
+    <div class="row between"><span class="muted">تخزين البيانات</span><strong>محلي (الجهاز)</strong></div>
+  </div>
+  <p class="hint">جميع بياناتك محفوظة محليًا على جهازك ولا تُرسل إلى أي خادم. التطبيق يعمل بشكل كامل بدون اتصال بالإنترنت بعد التحميل الأول.</p>
+  <div class="credit">
+    <div class="avatar">أ</div>
+    <div class="info">
+      <p class="made">تصميم وتطوير</p>
+      <p class="nm">أمير أنور</p>
+      <a href="tel:01066227553">01066227553</a>
+    </div>
+  </div>
+  <button class="btn ghost block sm mt-3" id="closeAboutBtn">إغلاق</button>
+</div>
+
+<!-- ============ SHEET: ADJUSTMENT (bonus/deduction) ============ -->
+<div class="sheet-overlay" id="adjOverlay"></div>
+<div class="sheet" id="adjSheet" role="dialog">
+  <h3 id="adjTitle">إضافة بند</h3>
+  <div class="field">
+    <label>النوع</label>
+    <select id="adjType">
+      <option value="bonus">مكافأة (+)</option>
+      <option value="allowance">بدل (+)</option>
+      <option value="deduction">خصم (−)</option>
+      <option value="advance">سلفة (−)</option>
+    </select>
+  </div>
+  <div class="field"><label>المبلغ (جنيه)</label><input type="number" id="adjAmount" placeholder="100"></div>
+  <div class="field"><label>التاريخ</label><input type="date" id="adjDate"></div>
+  <div class="field"><label>السبب / الوصف</label><input type="text" id="adjReason" placeholder="مثال: مكافأة التزام"></div>
+  <div class="sheet-actions">
+    <button class="btn primary" id="saveAdjBtn">حفظ</button>
+    <button class="btn ghost" id="cancelAdjBtn">إلغاء</button>
+  </div>
+</div>
+
+<!-- ============ SHEET: SEARCH ============ -->
+<div class="sheet-overlay" id="searchOverlay"></div>
+<div class="sheet" id="searchSheet" role="dialog">
+  <h3>البحث</h3>
+  <p class="sub">ابحث في الأيام والسجلات والملاحظات</p>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="ابحث بتاريخ أو حالة أو ملاحظة...">
+    <span class="ico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg></span>
+  </div>
+  <div class="row gap-2 wrap mb-3">
+    <button class="chip" data-search-status="A">حضور</button>
+    <button class="chip" data-search-status="X">مطبق</button>
+    <button class="chip" data-search-status="L">إجازة</button>
+    <button class="chip" data-search-status="B">غياب</button>
+  </div>
+  <div id="searchResults" style="max-height:50vh;overflow-y:auto;"></div>
+  <button class="btn ghost block sm mt-3" id="closeSearchBtn">إغلاق</button>
+</div>
+
+<!-- ============ PWA INSTALL BANNER ============ -->
+<div class="install-banner" id="installBanner">
+  <span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"></path></svg></span>
+  <div class="text"><strong>تثبيت ShiftPro</strong>أضف التطبيق لشاشتك الرئيسية</div>
+  <button class="btn primary sm" id="installAcceptBtn">تثبيت</button>
+  <button class="btn ghost sm icon-only" id="installDismissBtn">×</button>
+</div>
+
+<!-- ============ SCRIPTS ============ -->
+<script src="js/utils.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/calendar.js"></script>
+<script src="js/attendance.js"></script>
+<script src="js/salary.js"></script>
+<script src="js/reports.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
