@@ -309,46 +309,146 @@
   }
 
   // ---------- PWA install prompt ----------
-  function setupInstallPrompt() {
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      installPromptEvent = e;
-      // Show banner if not previously dismissed (within 7 days)
-      const dismissed = storage.getMeta('installDismissedAt');
-      if (dismissed) {
-        const days = (Date.now() - new Date(dismissed).getTime()) / 86400000;
-        if (days < 7) return;
-      }
-      setTimeout(() => {
-        $('#installBanner').classList.add('show');
-      }, 3000);
-    });
+   // ---------- PWA install prompt ----------
+let installBannerTimer = null;
 
-    $('#installAcceptBtn').addEventListener('click', async () => {
-      $('#installBanner').classList.remove('show');
-      if (!installPromptEvent) {
-        toast('افتح قائمة المتصفح واختر "إضافة للشاشة الرئيسية"', 'info');
-        return;
-      }
-      installPromptEvent.prompt();
-      const choice = await installPromptEvent.userChoice;
-      installPromptEvent = null;
+function hideInstallBanner(dismiss = false) {
+  const banner = $('#installBanner');
+  if (!banner) return;
+
+  if (installBannerTimer) {
+    clearTimeout(installBannerTimer);
+    installBannerTimer = null;
+  }
+
+  banner.classList.remove('show');
+  banner.hidden = true;
+  banner.setAttribute('aria-hidden', 'true');
+  banner.style.pointerEvents = 'none';
+
+  if (dismiss) {
+    storage.setMeta(
+      'installDismissedAt',
+      new Date().toISOString()
+    );
+  }
+}
+
+function showInstallBanner() {
+  const banner = $('#installBanner');
+  if (!banner) return;
+
+  banner.hidden = false;
+  banner.removeAttribute('aria-hidden');
+  banner.style.pointerEvents = 'auto';
+
+  requestAnimationFrame(() => {
+    banner.classList.add('show');
+  });
+}
+
+function setupInstallPrompt() {
+  const banner = $('#installBanner');
+  const acceptBtn = $('#installAcceptBtn');
+  const dismissBtn = $('#installDismissBtn');
+
+  if (!banner || !acceptBtn || !dismissBtn) return;
+
+  // يبدأ مخفي
+  banner.hidden = true;
+  banner.setAttribute('aria-hidden', 'true');
+  banner.style.pointerEvents = 'none';
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    installPromptEvent = e;
+
+    const dismissed = storage.getMeta('installDismissedAt');
+
+    if (dismissed) {
+      const days =
+        (Date.now() - new Date(dismissed).getTime()) / 86400000;
+
+      if (days < 7) return;
+    }
+
+    if (installBannerTimer) {
+      clearTimeout(installBannerTimer);
+    }
+
+    installBannerTimer = setTimeout(() => {
+      installBannerTimer = null;
+      showInstallBanner();
+    }, 3000);
+  });
+
+  // زر تثبيت
+  acceptBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    hideInstallBanner(false);
+
+    if (!installPromptEvent) {
+      toast(
+        'افتح قائمة المتصفح واختر "إضافة للشاشة الرئيسية"',
+        'info'
+      );
+      return;
+    }
+
+    const promptEvent = installPromptEvent;
+    installPromptEvent = null;
+
+    try {
+      promptEvent.prompt();
+
+      const choice = await promptEvent.userChoice;
+
       if (choice.outcome === 'accepted') {
         toast('جاري التثبيت...', 'success');
       }
-    });
-    $('#installDismissBtn').addEventListener('click', () => {
-      $('#installBanner').classList.remove('show');
-      storage.setMeta('installDismissedAt', new Date().toISOString());
-    });
+    } catch (err) {
+      console.warn('[PWA] install prompt failed', err);
+    }
+  });
 
-    // Already installed
-    window.addEventListener('appinstalled', () => {
-      $('#installBanner').classList.remove('show');
-      storage.setMeta('installedAt', new Date().toISOString());
-      toast('تم تثبيت ShiftPro!', 'success');
-    });
-  }
+  // زر X
+  dismissBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    hideInstallBanner(true);
+  });
+
+  // حماية إضافية لو الضغط وصل للـ banner نفسه
+  banner.addEventListener('click', (e) => {
+    if (
+      e.target &&
+      e.target.closest &&
+      e.target.closest('#installDismissBtn')
+    ) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      hideInstallBanner(true);
+    }
+  }, true);
+
+  // تم التثبيت
+  window.addEventListener('appinstalled', () => {
+    installPromptEvent = null;
+
+    hideInstallBanner(false);
+
+    storage.setMeta(
+      'installedAt',
+      new Date().toISOString()
+    );
+
+    toast('تم تثبيت ShiftPro!', 'success');
+  });
+}
 
   // ---------- Service worker ----------
   function registerSW() {
