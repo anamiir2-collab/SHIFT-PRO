@@ -1,2 +1,88 @@
-# SHIFT-PRO
-ShiftPro is a smart shift and work management app designed to organize work schedules, attendance, working hours, salaries, and reports in one place. Track day and night shifts, record actual working times, calculate hours and salary automatically, review performance, and export detailed reports with a clean, modern animated interface.
+# ShiftPro v2.0 — إدارة الورديات والحضور والرواتب
+
+تطبيق متكامل لإدارة الورديات والحضور وساعات العمل والرواتب — يعمل بدون إنترنت، قابل للتثبيت على Android (PWA)، وجاهز للرفع على GitHub Pages.
+
+## المميزات الرئيسية
+
+- **صفحة رئيسية (Dashboard)**: تحية باسم الموظف، التاريخ الميلادي والهجري، حالة اليوم والوردية، أزرار تسجيل حضور/انصراف، إحصائيات سريعة، نسبة الالتزام، الراتب المستحق.
+- **تقويم ذكي**: تنقل بين الشهور، زر "اليوم"، تمييز اليوم الحالي، ألوان لكل نوع وردية، أيقونات الحضور/الغياب/الإجازة، تحديد جماعي للأيام (اضغط مطولاً)، تطبيق وردية على مجموعة أيام.
+- **نظام حضور متكامل**: تسجيل دخول/انصراف، حساب المدة تلقائيًا (يدعم عبور منتصف الليل)، تعديل يدوي، منع القيم غير المنطقية، ملاحظات وموقع لكل يوم، تأكيد قبل الحذف.
+- **أنواع ورديات مخصصة**: أضف ورديات بأي اسم/وقت/لون/ساعات. ورديات افتراضية: نهار، ليل، إجازة دورية، مطبق 24س.
+- **نمط ورديات متكرر**: طبّق تسلسل (مثل D,N,O) على 30 يومًا تلقائيًا.
+- **حساب راتب دقيق**: راتب شهري/بالساعة/باليوم/بالوردية، حساب الإضافي بمعامل قابل للتخصيص، خصم الغياب والتأخير، مكافآت/بدلات/سلف/خصومات.
+- **التأخير والانصراف المبكر**: يحسب الوقت مقارنة ببداية ونهاية الوردية المجدولة.
+- **الإجازات**: 5 أنواع (سنوية، عارضة، مرضية، بدون راتب، دورية) مع رصيد ومستخدم ومتبقي.
+- **التقارير**: يومي/أسبوعي/دورة الراتب/مخصص بين تاريخين، رسم Donut وBar Chart، جدول تفصيلي.
+- **التصدير**: CSV متوافق مع Excel، JSON نسخة احتياطية كاملة، طباعة/PDF.
+- **النسخ الاحتياطي**: تصدير/استيراد JSON، استعادة الإعدادات الافتراضية، حذف جميع البيانات.
+- **الإعدادات الشاملة**: بيانات الموظف، طريقة الحساب، الورديات، دورة الصرف، المظهر (داكن/نهاري/تلقائي)، حجم الخط، الإشعارات المحلية.
+- **الإشعارات**: تذكير بالحضور/الانصراف/نهاية الوردية (Local Notifications).
+- **البحث**: ابحث بتاريخ/حالة/ملاحظة/وردية.
+- **الإحصائيات المتقدمة**: بطاقات ورسوم بيانية لفترة مخصصة.
+- **PWA حقيقي**: قابل للتثبيت، يعمل أوفلاين، Splash Screen، Service Worker مع Cache.
+- **حماية البيانات**: كل شيء محلي في `localStorage`، لا يُرسل شيء لأي خادم.
+- **Migration System**: يحوّل بيانات v1 القديمة تلقائيًا إلى v2 دون فقدان أي بيانات.
+
+## هيكل المشروع
+
+```
+shiftpro/
+├── index.html              # الهيكل الرئيسي للصفحات (Dashboard, Calendar, Salary, Reports, More)
+├── css/
+│   └── style.css           # كل الأنماط (Mobile First, RTL, Dark/Light, Print)
+├── js/
+│   ├── utils.js            # دوال مساعدة (تواريخ، هجري، تنسيق، Toast, Confirm)
+│   ├── storage.js          # طبقة localStorage مع Migration System من v1
+│   ├── calendar.js         # التقويم الذكي + التحديد الجماعي
+│   ├── attendance.js       # نظام الحضور + Day Sheet + سجل
+│   ├── salary.js           # حساب الراتب + الإضافي + الخصومات + المكافآت
+│   ├── reports.js          # التقارير + الرسوم البيانية + CSV/JSON/Print
+│   ├── settings.js         # الإعدادات + إدارة الورديات + الإجازات + الإحصائيات + النسخ
+│   └── app.js              # المنسق الرئيسي + Dashboard + Splash + PWA + Notifications + Search
+├── manifest.json           # PWA Manifest
+├── service-worker.js       # Service Worker للـ Offline
+├── icon-192.png            # أيقونة PWA 192×192
+├── icon-512.png            # أيقونة PWA 512×512
+├── apple-touch-icon.png    # أيقونة iOS 180×180
+└── favicon-32.png          # Favicon 32×32
+```
+
+## كيفية الرفع على GitHub Pages
+
+1. أنشئ مستودعًا جديدًا على GitHub (مثلاً `shiftpro`).
+2. ارفع جميع محتويات مجلد `shiftpro/` إلى جذر المستودع.
+3. اذهب إلى: Settings → Pages → Source: `main` branch → `/root` folder.
+4. انتظر دقيقة، ثم افتح الرابط `https://<username>.github.io/shiftpro/`.
+
+## التوافق مع البيانات القديمة
+
+التطبيق يقرأ تلقائيًا مفاتيح `localStorage` القديمة:
+- `shift_calendar_settings_v1`
+- `shift_calendar_attendance_v1`
+- `shift_calendar_schedule_override_v1`
+
+ويحوّلها إلى المفاتيح الجديدة:
+- `shifpro_settings_v2`
+- `shifpro_attendance_v2`
+- `shifpro_schedule_v2`
+- `shifpro_shifts_v2`
+- `shifpro_adjustments_v2`
+- `shifpro_leave_balance_v2`
+- `shifpro_meta_v2`
+
+**لا تُحذف المفاتيح القديمة** — تُترك كنسخة احتياطية، ويُهاجَر المحتوى إلى v2 مع الحفاظ على كل البيانات.
+
+## المتطلبات التقنية
+
+- HTML5 + CSS3 + JavaScript (ES2015+) — لا حاجة لأي Framework أو Build.
+- متصفح حديث يدعم Service Workers و `Intl.DateTimeFormat`.
+- يعمل على Android و iOS و Desktop.
+- لا يحتاج Backend أو قاعدة بيانات خارجية.
+
+## المطور
+
+**أمير أنور** — 01066227553
+
+## الإصدار
+
+v2.0.0 — 2026
