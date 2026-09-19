@@ -1,0 +1,786 @@
+/* =========================================================
+   SHIFTPRO — PREMIUM ANIMATIONS
+   ملف إضافي — لا يحذف أو يغير أي وظيفة موجودة
+   ========================================================= */
+
+:root {
+  --sp-motion: cubic-bezier(.22, .8, .2, 1);
+  --sp-fast: .18s;
+  --sp-normal: .32s;
+  --sp-slow: .5s;
+}
+
+/* =========================================================
+   PAGE TRANSITIONS
+   ========================================================= */
+
+.page.active {
+  animation: spPageIn .42s var(--sp-motion) both;
+}
+
+@keyframes spPageIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* =========================================================
+   CARDS
+   ========================================================= */
+
+.card,
+.hero-card,
+.stat-card,
+.section-list .item,
+.table-wrap {
+  animation: spCardIn .5s var(--sp-motion) both;
+
+  transition:
+    transform .28s var(--sp-motion),
+    box-shadow .28s var(--sp-motion),
+    border-color .28s ease,
+    background .28s ease;
+}
+
+@keyframes spCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(.975);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* تأخير بسيط بين البطاقات */
+
+.card:nth-child(2),
+.stat-card:nth-child(2),
+.section-list .item:nth-child(2) {
+  animation-delay: .05s;
+}
+
+.card:nth-child(3),
+.stat-card:nth-child(3),
+.section-list .item:nth-child(3) {
+  animation-delay: .10s;
+}
+
+.card:nth-child(4),
+.stat-card:nth-child(4),
+.section-list .item:nth-child(4) {
+  animation-delay: .15s;
+}
+
+.card:nth-child(5),
+.stat-card:nth-child(5),
+.section-list .item:nth-child(5) {
+  animation-delay: .20s;
+}
+
+.card:nth-child(6),
+.stat-card:nth-child(6),
+.section-list .item:nth-child(6) {
+  animation-delay: .25s;
+}
+
+
+/* =========================================================
+   CARD HOVER
+   ========================================================= */
+
+@media (hover: hover) {
+
+  .card:hover,
+  .hero-card:hover,
+  .stat-card:hover,
+  .section-list .item:hover {
+
+    transform: translateY(-4px);
+
+    box-shadow:
+      0 12px 30px rgba(0, 0, 0, .15);
+
+    border-color: var(--accent);
+  }
+}
+
+
+.card:active,
+.hero-card:active,
+.stat-card:active {
+  transform: scale(.985);
+}
+
+
+/* =========================================================
+   HERO CARD GLOW
+   ========================================================= */
+
+.hero-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-card::after {
+
+  content: "";
+
+  position: absolute;
+
+  inset: -40%;
+
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(255, 255, 255, .08),
+      transparent 55%
+    );
+
+  animation:
+    spHeroGlow 5s ease-in-out infinite;
+}
+
+@keyframes spHeroGlow {
+
+  0%,
+  100% {
+    transform: translate(-4%, -3%);
+    opacity: .5;
+  }
+
+  50% {
+    transform: translate(4%, 3%);
+    opacity: 1;
+  }
+}
+
+
+/* =========================================================
+   GOLD SHIMMER
+   ========================================================= */
+
+.hero-card::before,
+.card.glass::before {
+
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: -120%;
+
+  width: 55%;
+  height: 100%;
+
+  pointer-events: none;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, .08),
+      transparent
+    );
+
+  transform: skewX(-18deg);
+
+  animation:
+    spShimmer 7s ease-in-out infinite;
+}
+
+@keyframes spShimmer {
+
+  0%,
+  70%,
+  100% {
+    left: -120%;
+  }
+
+  85% {
+    left: 140%;
+  }
+}
+
+
+/* =========================================================
+   STAT NUMBERS
+   ========================================================= */
+
+.stat-card .value {
+  animation: spValue .65s var(--sp-motion) both;
+}
+
+@keyframes spValue {
+
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+.btn,
+.icon-btn,
+.cal-nav .nav-btn,
+.cal-nav .today-btn {
+
+  transition:
+    transform .18s var(--sp-motion),
+    box-shadow .22s ease,
+    background .22s ease,
+    border-color .22s ease;
+}
+
+
+.btn:hover,
+.icon-btn:hover,
+.cal-nav .nav-btn:hover,
+.cal-nav .today-btn:hover {
+  transform: translateY(-2px);
+}
+
+
+.btn:active,
+.icon-btn:active,
+.cal-nav .nav-btn:active,
+.cal-nav .today-btn:active {
+  transform: scale(.94);
+}
+
+
+/* =========================================================
+   CHECK IN / CHECK OUT
+   ========================================================= */
+
+.btn-checkin .ico,
+.btn-checkout .ico {
+
+  animation:
+    spActionPulse 2.8s ease-in-out infinite;
+}
+
+@keyframes spActionPulse {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(59, 130, 246, 0);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 7px rgba(59, 130, 246, .08);
+  }
+}
+
+
+.btn-checkin:hover,
+.btn-checkout:hover {
+
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, .12);
+}
+
+
+/* =========================================================
+   CALENDAR HEADER
+   ========================================================= */
+
+.cal-nav {
+
+  animation:
+    spCalendarHeader .45s var(--sp-motion) both;
+}
+
+@keyframes spCalendarHeader {
+
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   CALENDAR DAYS
+   ========================================================= */
+
+.cal-cell {
+
+  animation:
+    spCalendarCell .42s var(--sp-motion) both;
+
+  transition:
+    transform .22s var(--sp-motion),
+    box-shadow .22s ease,
+    background .22s ease,
+    border-color .22s ease;
+}
+
+
+.cal-cell:nth-child(1) {
+  animation-delay: .02s;
+}
+
+.cal-cell:nth-child(2) {
+  animation-delay: .04s;
+}
+
+.cal-cell:nth-child(3) {
+  animation-delay: .06s;
+}
+
+.cal-cell:nth-child(4) {
+  animation-delay: .08s;
+}
+
+.cal-cell:nth-child(5) {
+  animation-delay: .10s;
+}
+
+.cal-cell:nth-child(6) {
+  animation-delay: .12s;
+}
+
+.cal-cell:nth-child(7) {
+  animation-delay: .14s;
+}
+
+
+@keyframes spCalendarCell {
+
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* =========================================================
+   TODAY
+   ========================================================= */
+
+.cal-cell.today {
+
+  animation:
+    spCalendarCell .42s var(--sp-motion) both,
+    spTodayPulse 2.8s ease-in-out .45s infinite;
+}
+
+@keyframes spTodayPulse {
+
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px var(--accent) inset;
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 2px var(--accent) inset,
+      0 0 18px rgba(59, 130, 246, .24);
+  }
+}
+
+
+/* =========================================================
+   SELECTED CALENDAR DAY
+   ========================================================= */
+
+.cal-cell.selected {
+
+  animation:
+    spSelectedDay .35s var(--sp-motion) both;
+}
+
+@keyframes spSelectedDay {
+
+  from {
+    transform: scale(.96);
+  }
+
+  to {
+    transform: scale(1.04);
+  }
+}
+
+
+/* =========================================================
+   CALENDAR LEGEND
+   ========================================================= */
+
+.legend {
+
+  animation:
+    spFadeUp .45s var(--sp-motion) .15s both;
+}
+
+@keyframes spFadeUp {
+
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* =========================================================
+   BOTTOM NAVIGATION
+   ========================================================= */
+
+.tabbar {
+
+  animation:
+    spNavRise .5s var(--sp-motion) both;
+
+  box-shadow:
+    0 -8px 28px rgba(0, 0, 0, .10);
+}
+
+@keyframes spNavRise {
+
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.tabbar .tab-btn .ic {
+
+  transition:
+    transform .28s var(--sp-motion),
+    filter .28s ease;
+}
+
+
+.tabbar .tab-btn.active .ic {
+
+  transform:
+    translateY(-2px)
+    scale(1.08);
+}
+
+
+.tabbar .tab-btn:active .ic {
+
+  transform:
+    scale(.82);
+}
+
+
+/* =========================================================
+   FORM INPUTS
+   ========================================================= */
+
+.field input,
+.field select,
+.field textarea {
+
+  transition:
+    transform .2s var(--sp-motion),
+    border-color .2s ease,
+    box-shadow .2s ease,
+    background .2s ease;
+}
+
+
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+
+  transform:
+    translateY(-1px);
+}
+
+
+/* =========================================================
+   SETTINGS
+   ========================================================= */
+
+.setting-row {
+
+  transition:
+    background .22s ease,
+    transform .22s var(--sp-motion);
+}
+
+
+.setting-row:hover {
+
+  background:
+    rgba(59, 130, 246, .035);
+}
+
+
+/* =========================================================
+   BOTTOM SHEETS
+   ========================================================= */
+
+.sheet {
+
+  transition:
+    transform .42s var(--sp-motion);
+}
+
+
+.sheet.show {
+
+  animation:
+    spSheetEnter .42s var(--sp-motion) both;
+}
+
+@keyframes spSheetEnter {
+
+  from {
+    transform:
+      translateY(100%)
+      scale(.985);
+  }
+
+  to {
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* =========================================================
+   CONFIRM DIALOG
+   ========================================================= */
+
+.sp-confirm-box {
+
+  animation:
+    spConfirmEnter .35s var(--sp-motion) both;
+}
+
+@keyframes spConfirmEnter {
+
+  from {
+    opacity: 0;
+    transform:
+      scale(.88)
+      translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      scale(1)
+      translateY(0);
+  }
+}
+
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+
+.sp-toast.show {
+
+  animation:
+    spToast .35s var(--sp-motion) both;
+}
+
+@keyframes spToast {
+
+  from {
+    opacity: 0;
+    transform:
+      translateY(-14px)
+      scale(.94);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* =========================================================
+   INSTALL BANNER
+   ========================================================= */
+
+.install-banner {
+
+  transition:
+    transform .42s var(--sp-motion),
+    box-shadow .25s ease;
+}
+
+
+.install-banner.show {
+
+  animation:
+    spInstall .45s var(--sp-motion) both;
+}
+
+@keyframes spInstall {
+
+  from {
+    opacity: 0;
+    transform:
+      translateX(-50%)
+      translateY(35px)
+      scale(.96);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateX(-50%)
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* =========================================================
+   PROGRESS BAR
+   ========================================================= */
+
+.progress > span {
+
+  animation:
+    spProgress .8s var(--sp-motion) both;
+}
+
+@keyframes spProgress {
+
+  from {
+    width: 0 !important;
+  }
+}
+
+
+/* =========================================================
+   BAR CHART
+   ========================================================= */
+
+.bar-chart .bar {
+
+  transform-origin:
+    bottom;
+
+  animation:
+    spBarRise .65s var(--sp-motion) both;
+}
+
+@keyframes spBarRise {
+
+  from {
+    transform:
+      scaleY(0);
+
+    opacity: .4;
+  }
+
+  to {
+    transform:
+      scaleY(1);
+
+    opacity: 1;
+  }
+}
+
+
+/* =========================================================
+   SMOOTH SCROLL
+   ========================================================= */
+
+html {
+  scroll-behavior: smooth;
+}
+
+
+/* =========================================================
+   MOBILE TOUCH
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  .card,
+  .hero-card,
+  .stat-card,
+  .section-list .item {
+
+    transition:
+      transform .22s var(--sp-motion),
+      box-shadow .22s ease;
+  }
+
+  .card:active,
+  .hero-card:active,
+  .stat-card:active {
+
+    transform:
+      scale(.975);
+  }
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
