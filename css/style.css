@@ -1477,3 +1477,320 @@ table.tbl tbody tr:active { background: var(--panel-2); }
     transition-duration: .01ms !important;
   }
 }
+/* ============================================================
+   ShiftPro — Mobile Emergency Fix v2.1
+   ============================================================ */
+
+html,
+body {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+body {
+  position: relative;
+}
+
+/* منع أي عنصر من تكبير الصفحة */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+/* SVGs */
+svg {
+  max-width: 100%;
+}
+
+/* الصفحة */
+.page {
+  width: 100%;
+  min-width: 0;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+/* الهيدر */
+.topbar {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+.topbar .brand {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.topbar .brand .name {
+  max-width: 45vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* البطاقات */
+.card,
+.hero-card,
+.stat-card {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* النصوص */
+.hero-card .name,
+.hero-card .date-row,
+.card-title,
+.stat-card .label,
+.stat-card .value {
+  overflow-wrap: anywhere;
+}
+
+/* شبكة الإحصائيات */
+.stat-grid {
+  width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* زر الحضور */
+.btn-checkin,
+.btn-checkout {
+  width: 100%;
+  min-width: 0;
+}
+
+.btn-checkin .text,
+.btn-checkout .text {
+  min-width: 0;
+}
+
+/* التقويم */
+.cal-nav {
+  width: 100%;
+  min-width: 0;
+}
+
+.cal-nav .month-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weekdays,
+.cal-grid {
+  width: 100%;
+  min-width: 0;
+}
+
+.cal-grid {
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.cal-cell {
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* شريط اختيار الأيام */
+.cal-toolbar {
+  width: 100%;
+  min-width: 0;
+}
+
+.cal-toolbar .btn {
+  min-width: 0;
+}
+
+/* النوافذ السفلية */
+.sheet {
+  left: 0;
+  right: 0;
+  width: 100%;
+  max-width: 100%;
+  max-height: 92dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+/* الحقول */
+.field,
+.field-row {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.field-row {
+  display: flex;
+}
+
+.field-row .field {
+  min-width: 0;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* مهم جدًا للموبايل — يمنع Zoom عند الضغط على input */
+@media (max-width: 767px) {
+
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  .field-row {
+    gap: 8px;
+  }
+
+  .sheet .field-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sheet-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sheet-actions.full-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tabbar {
+    width: 100%;
+    left: 0;
+    right: 0;
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+  }
+
+  .tabbar .tab-btn {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .tabbar .tab-btn span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* أجهزة صغيرة جدًا */
+@media (max-width: 360px) {
+
+  .page {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .topbar {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .stat-grid {
+    gap: 7px;
+  }
+
+  .stat-card {
+    padding: 10px 8px;
+  }
+
+  .stat-card .label {
+    font-size: .68rem;
+  }
+
+  .stat-card .value {
+    font-size: 1.2rem;
+  }
+
+  .cal-grid {
+    gap: 3px;
+  }
+
+  .cal-cell {
+    border-radius: 8px;
+    font-size: .72rem;
+  }
+
+  .cal-cell .num {
+    font-size: .78rem;
+  }
+
+  .cal-cell .tag {
+    font-size: .48rem;
+  }
+
+  .btn {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+}
+
+/* منع العناصر الطويلة من كسر الشاشة */
+img,
+video,
+canvas,
+iframe {
+  max-width: 100%;
+  height: auto;
+}
+
+/* إصلاح الأيقونات */
+.btn svg,
+.icon-btn svg,
+.nav-btn svg,
+.tab-btn svg,
+.card svg {
+  max-width: 24px;
+  max-height: 24px;
+}
+
+/* تحسين اللمس */
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+/* الوضع الأفقي */
+@media (max-height: 520px) and (orientation: landscape) {
+
+  .sheet {
+    max-height: 96dvh;
+  }
+
+  .tabbar .tab-btn {
+    padding-top: 3px;
+    padding-bottom: 3px;
+  }
+   }
