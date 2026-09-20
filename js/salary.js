@@ -1,11 +1,17 @@
 /* ShiftPro - Salary Module
-   Computes salary for a pay period: base hours, overtime, adjustments,
-   deductions, advances, and net pay.
+   Computes salary for a pay period.
 
-   Leave rules:
-   - Paid leave: leaveHours are counted as base paid hours.
-   - Unpaid leave: leaveHours are NOT counted as paid hours.
-   - Missing leaveHours on old records defaults to 8 hours.
+   Official Holiday Rules:
+   - Official holidays DO NOT block attendance.
+   - If no attendance is recorded on an official holiday:
+       0 salary hours.
+   - If the employee works on an official holiday:
+       Actual worked hours are counted normally.
+       Additional official-holiday hours are added according
+       to the employee/company selected multiplier.
+   - Example with multiplier 1:
+       8 worked + 8 official = 16 salary hours.
+   - Official holidays never deduct personal leave balance.
 
    Exposes: window.SPSalary
 */
@@ -70,6 +76,68 @@
   }
 
   // =========================================================
+  // Official holiday multiplier
+  // =========================================================
+
+  function getOfficialHolidayMultiplier() {
+    const s =
+      storage.getSettings();
+
+    let multiplier =
+      Number(
+        s.officialHolidayRate
+      );
+
+    // Default:
+    // 1 = same number of additional hours
+    // Example:
+    // 8 worked + 8 official = 16
+    if (!Number.isFinite(multiplier)) {
+      multiplier = 1;
+    }
+
+    if (multiplier < 0) {
+      multiplier = 0;
+    }
+
+    if (multiplier > 5) {
+      multiplier = 5;
+    }
+
+    return multiplier;
+  }
+
+  // =========================================================
+  // Official holiday helpers
+  // =========================================================
+
+  function isOfficialHoliday(date) {
+    if (
+      !global.SPOfficialHolidays ||
+      typeof global.SPOfficialHolidays.isOfficialHoliday !== 'function'
+    ) {
+      return false;
+    }
+
+    return global.SPOfficialHolidays.isOfficialHoliday(
+      fmtDate(date)
+    );
+  }
+
+  function getOfficialHolidayName(date) {
+    if (
+      !global.SPOfficialHolidays ||
+      typeof global.SPOfficialHolidays.getOfficialHolidayName !== 'function'
+    ) {
+      return '';
+    }
+
+    return global.SPOfficialHolidays.getOfficialHolidayName(
+      fmtDate(date)
+    ) || '';
+  }
+
+  // =========================================================
   // Leave helpers
   // =========================================================
 
@@ -79,8 +147,7 @@
     let hours =
       Number(entry.leaveHours);
 
-    // Old leave records that don't have leaveHours
-    // are treated as a full 8-hour leave day.
+    // Old leave records
     if (!Number.isFinite(hours)) {
       hours = 8;
     }
@@ -130,12 +197,11 @@
         entry.leaveType
       );
 
-    // Only unpaid leave is excluded from salary.
     return type !== 'unpaid';
   }
 
   // =========================================================
-  // Compute salary for a period
+  // Compute salary
   // =========================================================
 
   function computeSalary(start, end) {
@@ -148,6 +214,9 @@
     const overtimeRate =
       getOvertimeHourlyRate();
 
+    const officialHolidayMultiplier =
+      getOfficialHolidayMultiplier();
+
     const counts = {
       A: 0,
       X: 0,
@@ -158,10 +227,12 @@
     let baseHours = 0;
     let overtimeHours = 0;
 
+    // Additional official holiday hours
+    let officialHolidayHours = 0;
+
     let lateTotal = 0;
     let earlyTotal = 0;
 
-    // Additional leave information
     let paidLeaveHours = 0;
     let unpaidLeaveHours = 0;
 
@@ -182,6 +253,14 @@
           ? entry.status
           : null;
 
+      const officialHoliday =
+        isOfficialHoliday(d);
+
+      const officialHolidayName =
+        officialHoliday
+          ? getOfficialHolidayName(d)
+          : '';
+
       let actual = 0;
       let ot = 0;
       let late = 0;
@@ -201,19 +280,35 @@
       // =====================================================
 
       else if (status === 'L') {
-        counts.L++;
 
-        actual =
-          getLeaveHours(entry);
+        // Official holiday is NOT personal leave.
+        // Do not deduct it as annual/casual/etc.
+        if (officialHoliday) {
 
-        if (isPaidLeave(entry)) {
-          // Paid leave contributes to paid base hours.
-          baseHours += actual;
+          // A manually-created L record on an official
+          // holiday contributes nothing to salary.
+          actual = 0;
 
-          paidLeaveHours += actual;
         } else {
-          // Unpaid leave contributes zero paid hours.
-          unpaidLeaveHours += actual;
+
+          counts.L++;
+
+          actual =
+            getLeaveHours(entry);
+
+          if (isPaidLeave(entry)) {
+
+            baseHours +=
+              actual;
+
+            paidLeaveHours +=
+              actual;
+
+          } else {
+
+            unpaidLeaveHours +=
+              actual;
+          }
         }
       }
 
@@ -222,6 +317,7 @@
       // =====================================================
 
       else if (status === 'X') {
+
         counts.X++;
 
         actual =
@@ -246,6 +342,20 @@
 
         overtimeHours +=
           ot;
+
+        // ===================================================
+        // Official holiday
+        // ===================================================
+
+        if (
+          officialHoliday &&
+          actual > 0
+        ) {
+
+          officialHolidayHours +=
+            actual *
+            officialHolidayMultiplier;
+        }
       }
 
       // =====================================================
@@ -253,6 +363,7 @@
       // =====================================================
 
       else if (status === 'A') {
+
         counts.A++;
 
         actual =
@@ -278,10 +389,29 @@
         overtimeHours +=
           ot;
 
+        // ===================================================
+        // Official holiday additional hours
+        // ===================================================
+
+        if (
+          officialHoliday &&
+          actual > 0
+        ) {
+
+          officialHolidayHours +=
+            actual *
+            officialHolidayMultiplier;
+        }
+
+        // ===================================================
+        // Late / early
+        // ===================================================
+
         if (
           entry &&
           entry.from
         ) {
+
           late =
             SPAttendance.computeLateMinutes(
               d,
@@ -293,6 +423,7 @@
           entry &&
           entry.to
         ) {
+
           early =
             SPAttendance.computeEarlyLeaveMinutes(
               d,
@@ -318,13 +449,31 @@
         );
 
       dailyDetails.push({
-        date: new Date(d),
+        date:
+          new Date(d),
+
         entry,
+
         actual,
+
         ot,
+
         late,
+
         early,
-        value
+
+        value,
+
+        officialHoliday,
+
+        officialHolidayName,
+
+        officialHolidayHours:
+          officialHoliday &&
+          actual > 0
+            ? actual *
+              officialHolidayMultiplier
+            : 0
       });
 
       d =
@@ -339,6 +488,7 @@
       storage
         .getAdjustments()
         .filter((a) => {
+
           const ad =
             parseDate(a.date);
 
@@ -354,6 +504,7 @@
     let advance = 0;
 
     adjustments.forEach((a) => {
+
       const amt =
         Number(a.amount) || 0;
 
@@ -381,6 +532,7 @@
     let absenceDeduction = 0;
 
     if (s.deductAbsence) {
+
       const dayValue =
         baseRate *
         (
@@ -400,6 +552,7 @@
     let lateDeduction = 0;
 
     if (s.deductLate) {
+
       const lateHours =
         lateTotal / 60;
 
@@ -412,9 +565,29 @@
     // Salary totals
     // =========================================================
 
+    /*
+      Important:
+
+      officialHolidayHours are ADDITIONAL salary hours.
+
+      Example:
+      actual = 8
+      multiplier = 1
+
+      normal:
+      8 hours
+
+      official:
+      +8 hours
+
+      total:
+      16 hours
+    */
+
     const totalHours =
       baseHours +
-      overtimeHours;
+      overtimeHours +
+      officialHolidayHours;
 
     const baseSalary =
       baseHours *
@@ -422,6 +595,11 @@
 
     const overtimeValue =
       overtimeHours *
+      overtimeRate;
+
+    // Official holiday additional payment
+    const officialHolidayValue =
+      officialHolidayHours *
       overtimeRate;
 
     const totalDeductions =
@@ -433,6 +611,7 @@
     const grossSalary =
       baseSalary +
       overtimeValue +
+      officialHolidayValue +
       bonus +
       allowance;
 
@@ -445,6 +624,7 @@
     // =========================================================
 
     return {
+
       counts,
 
       baseHours:
@@ -457,12 +637,16 @@
           overtimeHours * 100
         ) / 100,
 
+      officialHolidayHours:
+        Math.round(
+          officialHolidayHours * 100
+        ) / 100,
+
       totalHours:
         Math.round(
           totalHours * 100
         ) / 100,
 
-      // Leave details
       paidLeaveHours:
         Math.round(
           paidLeaveHours * 100
@@ -479,6 +663,8 @@
       baseRate,
       overtimeRate,
 
+      officialHolidayMultiplier,
+
       baseSalary:
         Math.round(
           baseSalary
@@ -487,6 +673,11 @@
       overtimeValue:
         Math.round(
           overtimeValue
+        ),
+
+      officialHolidayValue:
+        Math.round(
+          officialHolidayValue
         ),
 
       bonus,
@@ -528,6 +719,7 @@
         ),
 
       adjustments,
+
       dailyDetails
     };
   }
@@ -537,6 +729,7 @@
   // =========================================================
 
   function render() {
+
     const periodRef =
       SPCalendar.getPeriodRef();
 
@@ -664,6 +857,7 @@
   function renderAdjustments(
     adjustments
   ) {
+
     const list =
       $('#adjustmentsList');
 
@@ -672,6 +866,7 @@
     if (
       adjustments.length === 0
     ) {
+
       list.appendChild(
         el('div', {
           class:
@@ -692,6 +887,7 @@
     }
 
     adjustments.forEach((a) => {
+
       const sign =
         (
           a.type === 'bonus' ||
@@ -779,6 +975,7 @@
       delBtn.addEventListener(
         'click',
         async () => {
+
           const ok =
             await SPUtils.confirmDialog(
               'حذف هذا البند؟',
@@ -822,6 +1019,7 @@
   function openAdjustmentSheet(
     preselectedDate
   ) {
+
     const overlay =
       $('#adjOverlay');
 
@@ -854,6 +1052,7 @@
   }
 
   function closeAdjustmentSheet() {
+
     $('#adjOverlay')
       .classList.remove(
         'show'
@@ -866,6 +1065,7 @@
   }
 
   function saveAdjustment() {
+
     const type =
       $('#adjType').value;
 
@@ -881,18 +1081,22 @@
       $('#adjReason').value.trim();
 
     if (amount <= 0) {
+
       toast(
         'أدخل مبلغًا صحيحًا',
         'warning'
       );
+
       return;
     }
 
     if (!date) {
+
       toast(
         'حدد التاريخ',
         'warning'
       );
+
       return;
     }
 
@@ -918,6 +1122,7 @@
   // =========================================================
 
   function init() {
+
     $('#prevPeriodBtn')
       .addEventListener(
         'click',
@@ -971,14 +1176,26 @@
   // =========================================================
 
   global.SPSalary = {
+
     init,
+
     render,
+
     computeSalary,
+
     getHourlyRate,
+
     getOvertimeHourlyRate,
+
     getPayPeriod,
+
     getLeaveHours,
-    isPaidLeave
+
+    isPaidLeave,
+
+    getOfficialHolidayMultiplier,
+
+    isOfficialHoliday
   };
 
 })(window);
