@@ -33,6 +33,7 @@ shiftpro/
 ├── js/
 │   ├── utils.js            # دوال مساعدة (تواريخ، هجري، تنسيق، Toast, Confirm)
 │   ├── storage.js          # طبقة localStorage مع Migration System من v1
+│   ├── official-holidays.js         #اضافة كل الاجازات الرسمية في مصر وايضا المناسبات الاسلامية مثل اول رمضان وايام العيد الفطر والعيد الاضحي
 │   ├── calendar.js         # التقويم الذكي + التحديد الجماعي
 │   ├── attendance.js       # نظام الحضور + Day Sheet + سجل
 │   ├── salary.js           # حساب الراتب + الإضافي + الخصومات + المكافآت
