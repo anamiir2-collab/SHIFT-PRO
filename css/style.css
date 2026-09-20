@@ -1477,3 +1477,547 @@ table.tbl tbody tr:active { background: var(--panel-2); }
     transition-duration: .01ms !important;
   }
 }
+/* =========================================================
+   ShiftPro — Professional UI Refinement
+   تحسين الشكل ومنع تداخل النصوص
+   Mobile First / RTL
+   ========================================================= */
+
+/* ---------- Global protection ---------- */
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  min-width: 0;
+  max-width: 100%;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+.page {
+  padding-bottom: calc(var(--tabbar-h) + 22px);
+}
+
+.page > * {
+  max-width: 100%;
+}
+
+/* ---------- Cards ---------- */
+
+.card {
+  border-radius: 20px;
+  padding: 16px;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.card-title {
+  min-width: 0;
+  line-height: 1.45;
+  flex-wrap: wrap;
+}
+
+/* ---------- Hero ---------- */
+
+.hero-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  padding: 22px 20px;
+  margin-bottom: 14px;
+
+  background:
+    radial-gradient(
+      circle at 88% 12%,
+      rgba(59,130,246,.18),
+      transparent 30%
+    ),
+    linear-gradient(
+      145deg,
+      var(--panel),
+      var(--panel-2)
+    );
+
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 35px rgba(0,0,0,.14);
+}
+
+.hero-card .greeting {
+  margin: 0 0 5px;
+  font-size: .82rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.hero-card .name {
+  margin: 0 0 14px;
+  font-size: 1.55rem;
+  line-height: 1.35;
+  font-weight: 950;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ---------- Today's status ---------- */
+
+#todayStatusPills {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center;
+  gap: 8px !important;
+  width: 100%;
+  margin: 0 0 14px;
+}
+
+#todayStatusPills .status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  flex: 0 1 auto;
+  min-height: 34px;
+  max-width: 100%;
+
+  padding: 7px 11px;
+  border-radius: 999px;
+
+  white-space: normal;
+  text-align: center;
+  line-height: 1.25;
+  font-size: .74rem;
+  font-weight: 800;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+#todayStatusPills .status-pill .dot {
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+}
+
+/* ---------- Hero date ---------- */
+
+.hero-card .date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+  flex-wrap: wrap;
+
+  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+
+  color: var(--text-2);
+  font-size: .78rem;
+  line-height: 1.5;
+}
+
+.hero-card .date-row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.hero-card .date-row .hijri {
+  color: var(--accent-2);
+  font-weight: 800;
+}
+
+/* ---------- Check-in / Check-out ---------- */
+
+#checkinActions,
+#checkoutActions {
+  width: 100%;
+  margin: 0 0 12px !important;
+}
+
+.btn-checkin,
+.btn-checkout {
+  min-height: 76px;
+
+  padding: 13px 14px;
+
+  border-radius: 20px;
+
+  gap: 12px;
+
+  overflow: hidden;
+}
+
+.btn-checkin .ico,
+.btn-checkout .ico {
+  width: 46px;
+  height: 46px;
+
+  flex: 0 0 46px;
+}
+
+.btn-checkin .text,
+.btn-checkout .text {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  gap: 3px;
+}
+
+.btn-checkin .text .t1,
+.btn-checkout .text .t1 {
+  display: block;
+
+  font-size: .98rem;
+  line-height: 1.35;
+
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.btn-checkin .text .t2,
+.btn-checkout .text .t2 {
+  display: block;
+
+  font-size: .72rem;
+  line-height: 1.4;
+
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Stats ---------- */
+
+.stat-grid {
+  gap: 10px;
+}
+
+.stat-card {
+  min-width: 0;
+  border-radius: 18px;
+  padding: 13px;
+}
+
+.stat-card .label,
+.stat-card .value,
+.stat-card .sub {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ---------- Buttons ---------- */
+
+.btn {
+  min-height: 42px;
+
+  border-radius: 13px;
+
+  line-height: 1.3;
+
+  white-space: normal;
+  text-align: center;
+
+  overflow-wrap: anywhere;
+}
+
+.btn.sm {
+  min-height: 38px;
+  padding: 8px 11px;
+}
+
+/* ---------- Forms ---------- */
+
+.field {
+  min-width: 0;
+}
+
+.field label {
+  line-height: 1.4;
+}
+
+.field input,
+.field select,
+.field textarea {
+  min-height: 46px;
+  max-width: 100%;
+}
+
+/* ---------- Calendar ---------- */
+
+.cal-grid {
+  gap: 5px !important;
+}
+
+.cal-cell {
+  min-width: 0;
+
+  overflow: hidden;
+
+  border-radius: 13px !important;
+
+  padding: 7px 4px !important;
+}
+
+.cal-cell .num {
+  line-height: 1.2;
+}
+
+.cal-cell .tag {
+  display: block;
+
+  max-width: 100%;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  line-height: 1.2;
+}
+
+.cal-cell .hrs {
+  max-width: 100%;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- Calendar toolbar ---------- */
+
+.cal-toolbar {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.cal-toolbar .sel-count {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Bottom sheet ---------- */
+
+.sheet {
+  border-radius: 24px 24px 0 0;
+
+  padding-left: 16px;
+  padding-right: 16px;
+
+  overflow-x: hidden;
+}
+
+.sheet h3,
+.sheet .sub {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.sheet-actions {
+  gap: 10px;
+}
+
+.sheet-actions .btn {
+  min-height: 44px;
+  min-width: 0;
+}
+
+/* ---------- Tables ---------- */
+
+.table-wrap {
+  border-radius: 16px;
+  max-width: 100%;
+}
+
+table.tbl th,
+table.tbl td {
+  line-height: 1.45;
+}
+
+/* ---------- Toast ---------- */
+
+.sp-toast-host {
+  width: min(92vw, 420px);
+}
+
+.sp-toast {
+  width: 100%;
+
+  text-align: center;
+  line-height: 1.5;
+
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ---------- Bottom Navigation ---------- */
+
+.tabbar {
+  padding:
+    8px
+    7px
+    calc(8px + env(safe-area-inset-bottom));
+
+  gap: 5px;
+
+  border-top: 1px solid var(--line);
+
+  box-shadow:
+    0 -8px 28px rgba(0,0,0,.12);
+}
+
+.tabbar .tab-btn {
+  min-width: 0;
+  min-height: 54px;
+
+  padding: 6px 3px;
+
+  gap: 4px;
+
+  border-radius: 14px;
+
+  line-height: 1.2;
+}
+
+.tabbar .tab-btn .label {
+  max-width: 100%;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tabbar .tab-btn.active {
+  background: rgba(59,130,246,.09);
+}
+
+/* ---------- Search ---------- */
+
+.search-bar,
+.search-bar input {
+  max-width: 100%;
+}
+
+/* ---------- Settings ---------- */
+
+.section-list .item {
+  min-width: 0;
+}
+
+.section-list .item .label {
+  min-width: 0;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ---------- Credit ---------- */
+
+.credit {
+  min-width: 0;
+}
+
+.credit .info {
+  min-width: 0;
+}
+
+.credit .info .nm,
+.credit .info a {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* ---------- Install banner ---------- */
+
+.install-banner {
+  min-width: 0;
+}
+
+.install-banner .text {
+  min-width: 0;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* =========================================================
+   Small phones
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+  .hero-card {
+    padding: 18px 15px;
+  }
+
+  .hero-card .name {
+    font-size: 1.35rem;
+  }
+
+  #todayStatusPills .status-pill {
+    font-size: .69rem;
+    padding: 6px 9px;
+  }
+
+  .btn-checkin,
+  .btn-checkout {
+    min-height: 70px;
+  }
+
+  .btn-checkin .ico,
+  .btn-checkout .ico {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
+
+  .btn-checkin .text .t1,
+  .btn-checkout .text .t1 {
+    font-size: .9rem;
+  }
+
+  .btn-checkin .text .t2,
+  .btn-checkout .text .t2 {
+    font-size: .68rem;
+  }
+
+  .cal-cell {
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+  }
+
+  .cal-cell .tag {
+    font-size: .5rem;
+  }
+}
+
+/* =========================================================
+   Accessibility
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .tabbar .tab-btn.active .ic {
+    animation: none !important;
+  }
+
+  .hero-card,
+  .card,
+  .btn,
+  .cal-cell {
+    transition: none !important;
+  }
+}
