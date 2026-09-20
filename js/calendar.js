@@ -1,5 +1,6 @@
 /* ShiftPro - Calendar Module
    Renders the calendar grid, handles day-click, multi-select, and pattern.
+   Official holidays + Ramadan dates integrated.
    Exposes: window.SPCalendar
 */
 (function (global) {
@@ -20,9 +21,55 @@
 
   const storage = SPStorage;
 
-  let periodRef = new Date(); // Reference date for current pay period
-  const selectedDates = new Set(); // For multi-select mode
+  let periodRef = new Date();
+  const selectedDates = new Set();
   let onSelectChangeCb = null;
+
+  // ---------- Official Holidays ----------
+
+  function getOfficialHoliday(date) {
+    if (
+      !global.SPOfficialHolidays ||
+      typeof global.SPOfficialHolidays.getOfficialHoliday !== 'function'
+    ) {
+      return null;
+    }
+
+    return global.SPOfficialHolidays.getOfficialHoliday(date);
+  }
+
+  function getSpecialDate(date) {
+    if (
+      !global.SPOfficialHolidays ||
+      typeof global.SPOfficialHolidays.getSpecialDate !== 'function'
+    ) {
+      return null;
+    }
+
+    return global.SPOfficialHolidays.getSpecialDate(date);
+  }
+
+  function isOfficialHoliday(date) {
+    if (
+      !global.SPOfficialHolidays ||
+      typeof global.SPOfficialHolidays.isOfficialHoliday !== 'function'
+    ) {
+      return false;
+    }
+
+    return global.SPOfficialHolidays.isOfficialHoliday(date);
+  }
+
+  function isRamadanStart(date) {
+    if (
+      !global.SPOfficialHolidays ||
+      typeof global.SPOfficialHolidays.isRamadanStart !== 'function'
+    ) {
+      return false;
+    }
+
+    return global.SPOfficialHolidays.isRamadanStart(date);
+  }
 
   // ---------- Pay Period ----------
 
@@ -136,7 +183,6 @@
 
     grid.innerHTML = '';
 
-    // Calculate day of week for the start (0=Sunday)
     const startOffset =
       start.getDay();
 
@@ -149,7 +195,8 @@
     const today =
       new Date();
 
-    // Empty cells before first day
+    // ---------- Empty cells ----------
+
     for (
       let i = 0;
       i < startOffset;
@@ -166,7 +213,8 @@
       );
     }
 
-    // Days
+    // ---------- Days ----------
+
     for (
       let i = 0;
       i < totalDays;
@@ -203,56 +251,106 @@
           code
         );
 
+      // ---------- Official Holiday ----------
+
+      const officialHoliday =
+        getOfficialHoliday(
+          date
+        );
+
+      // ---------- Special Date ----------
+
+      const specialDate =
+        getSpecialDate(
+          date
+        );
+
+      const official =
+        !!officialHoliday;
+
+      const ramadanStart =
+        !!(
+          specialDate &&
+          specialDate.isRamadanStart
+        );
+
       /*
         ساعات اليوم.
 
-        مهم:
-        لو الحالة إجازة يتم أخذ
-        entry.leaveHours من نفس
-        سجل الحضور.
+        الإجازة الرسمية:
+        0 ساعات.
+
+        أول رمضان:
+        ليس إجازة، لذلك لا نغير
+        حساب ساعات الحضور بسببه.
       */
       const hours =
-        entry
-          ? computeEntryHours(
+        official
+          ? 0
+          : (
               entry
-            )
-          : 0;
+                ? computeEntryHours(
+                    entry
+                  )
+                : 0
+            );
+
+      // ---------- Cell Class ----------
+
+      let cellClass =
+        'cal-cell clickable';
+
+      if (code) {
+        cellClass +=
+          ' scheduled';
+      }
+
+      if (
+        sameDay(
+          date,
+          today
+        )
+      ) {
+        cellClass +=
+          ' today';
+      }
+
+      if (
+        date < today &&
+        !sameDay(
+          date,
+          today
+        )
+      ) {
+        cellClass +=
+          ' before';
+      }
+
+      if (
+        selectedDates.has(
+          dstr
+        )
+      ) {
+        cellClass +=
+          ' selected';
+      }
+
+      if (official) {
+        cellClass +=
+          ' official-holiday';
+      }
+
+      if (ramadanStart) {
+        cellClass +=
+          ' ramadan-start';
+      }
 
       const cell =
         el(
           'div',
           {
             class:
-              'cal-cell clickable' +
-              (
-                code
-                  ? ' scheduled'
-                  : ''
-              ) +
-              (
-                sameDay(
-                  date,
-                  today
-                )
-                  ? ' today'
-                  : ''
-              ) +
-              (
-                date < today &&
-                !sameDay(
-                  date,
-                  today
-                )
-                  ? ' before'
-                  : ''
-              ) +
-              (
-                selectedDates.has(
-                  dstr
-                )
-                  ? ' selected'
-                  : ''
-              ),
+              cellClass,
 
             dataset: {
               date: dstr
@@ -263,21 +361,18 @@
             tabindex: '0',
 
             'aria-label':
-              `${date.getDate()} ${
-                monthNamesAr[
-                  date.getMonth()
-                ]
-              } — ${
-                shift
-                  ? shift.name
-                  : 'غير محدد'
-              }`
+              buildAriaLabel(
+                date,
+                shift,
+                officialHoliday,
+                ramadanStart
+              )
           }
         );
 
       // ---------- Shift Background ----------
 
-      if (shift) {
+      if (shift && !official) {
         cell.style.background =
           shift.color;
 
@@ -286,6 +381,21 @@
 
         cell.style.color =
           '#fff';
+      }
+
+      /*
+        الإجازة الرسمية تأخذ
+        تنسيقها الخاص بدل لون الوردية.
+      */
+      if (official) {
+        cell.style.background =
+          'rgba(194, 136, 78, 0.14)';
+
+        cell.style.borderColor =
+          'rgba(194, 136, 78, 0.55)';
+
+        cell.style.color =
+          '#6d4c2f';
       }
 
       // ---------- Day Number ----------
@@ -321,18 +431,71 @@
           }
         );
 
-      tag.textContent =
-        shift
-          ? shift.name
-          : 'حدد';
+      if (officialHoliday) {
+        tag.textContent =
+          officialHoliday.name;
+      } else if (ramadanStart) {
+        tag.textContent =
+          '🌙 أول رمضان';
+      } else {
+        tag.textContent =
+          shift
+            ? shift.name
+            : 'حدد';
+      }
 
       cell.appendChild(
         tag
       );
 
+      // ---------- Official Holiday Label ----------
+
+      if (officialHoliday) {
+        const holidayLabel =
+          el(
+            'div',
+            {
+              class:
+                'official-holiday-label'
+            }
+          );
+
+        holidayLabel.textContent =
+          'إجازة رسمية';
+
+        cell.appendChild(
+          holidayLabel
+        );
+      }
+
+      // ---------- Ramadan Label ----------
+
+      if (ramadanStart) {
+        const ramadanLabel =
+          el(
+            'div',
+            {
+              class:
+                'ramadan-label'
+            }
+          );
+
+        ramadanLabel.textContent =
+          'بداية رمضان';
+
+        cell.appendChild(
+          ramadanLabel
+        );
+      }
+
       // ---------- Hours Preview ----------
 
+      /*
+        الإجازة الرسمية لا تعرض ساعات
+        لأنها ليست ساعات عمل.
+      */
       if (
+        !official &&
         entry &&
         hours > 0
       ) {
@@ -386,15 +549,58 @@
         );
       }
 
+      // ---------- Official Holiday Badge ----------
+
+      if (official) {
+        const officialBadge =
+          el(
+            'div',
+            {
+              class:
+                'official-badge',
+              'aria-hidden':
+                'true'
+            }
+          );
+
+        officialBadge.textContent =
+          'عطلة';
+
+        cell.appendChild(
+          officialBadge
+        );
+      }
+
       // ---------- Click ----------
 
       cell.addEventListener(
         'click',
         () => {
+
+          /*
+            لو إجازة رسمية:
+            لا نفتح سجل حضور جديد
+            بالضغط العادي.
+
+            لكن لو فيه سجل حضور موجود بالفعل
+            نسمح بفتحه للتعديل.
+          */
+          if (
+            official &&
+            !entry &&
+            selectedDates.size === 0
+          ) {
+            SPUtils.toast(
+              officialHoliday.name,
+              'info'
+            );
+
+            return;
+          }
+
           if (
             selectedDates.size > 0
           ) {
-            // In selection mode
             toggleSelection(
               dstr
             );
@@ -429,7 +635,6 @@
                   dstr
                 );
 
-                // Prevent the click that would follow
                 if (
                   e.preventDefault
                 ) {
@@ -481,6 +686,38 @@
     }
   }
 
+  // ---------- Accessibility ----------
+
+  function buildAriaLabel(
+    date,
+    shift,
+    officialHoliday,
+    ramadanStart
+  ) {
+    let label =
+      `${date.getDate()} ${
+        monthNamesAr[
+          date.getMonth()
+        ]
+      }`;
+
+    if (officialHoliday) {
+      label +=
+        ` — ${officialHoliday.name} — إجازة رسمية`;
+    } else if (ramadanStart) {
+      label +=
+        ' — أول رمضان';
+    } else if (shift) {
+      label +=
+        ` — ${shift.name}`;
+    } else {
+      label +=
+        ' — غير محدد';
+    }
+
+    return label;
+  }
+
   // ---------- Selection ----------
 
   function toggleSelection(
@@ -501,6 +738,7 @@
     }
 
     updateSelectionUI();
+
     renderCalendar();
   }
 
@@ -553,7 +791,6 @@
     const shifts =
       storage.getShifts();
 
-    // Build a quick picker
     const overlay =
       el(
         'div',
@@ -747,24 +984,21 @@
 
   // ---------- Entry Hours ----------
 
-  /*
-    مصدر الحقيقة لساعات اليوم في التقويم.
-
-    الإجازة:
-      - تعتمد على entry.leaveHours
-      - لو غير موجودة في سجل قديم = 8 ساعات
-
-    الحضور:
-      - لو فيه بداية ونهاية نحسب المدة الفعلية
-
-    المطبق:
-      - عدد ساعات الوردية × 2
-
-    الغياب:
-      - 0
-  */
   function computeEntryHours(entry) {
     if (!entry) {
+      return 0;
+    }
+
+    /*
+      الإجازة الرسمية لا تعتبر
+      ساعات عمل.
+    */
+    if (
+      entry.date &&
+      isOfficialHoliday(
+        parseDate(entry.date)
+      )
+    ) {
       return 0;
     }
 
@@ -790,10 +1024,6 @@
         );
       }
 
-      /*
-        الإجازات القديمة التي
-        لم يكن بها leaveHours
-      */
       return 8;
     }
 
@@ -807,18 +1037,14 @@
       entry.from &&
       entry.to
     ) {
-      /*
-        لو فيه تواريخ بداية ونهاية
-        نحسبها بدقة عبر Attendance.
-      */
       if (
-        SPAttendance &&
+        global.SPAttendance &&
         typeof
-          SPAttendance.computeActualHours ===
+          global.SPAttendance.computeActualHours ===
           'function'
       ) {
         const actual =
-          SPAttendance.computeActualHours(
+          global.SPAttendance.computeActualHours(
             entry
           );
 
@@ -832,17 +1058,11 @@
         }
       }
 
-      /*
-        fallback
-        لو Attendance غير متاح.
-      */
       return SPUtils.computeRangeHours(
         entry.from,
         entry.to
       );
     }
-
-    // ---------- Shift Hours ----------
 
     const sh =
       Number(
@@ -979,7 +1199,12 @@
     gotoToday,
     getPeriodRef,
     setPeriodRef,
-    clearSelection
+    clearSelection,
+
+    getOfficialHoliday,
+    getSpecialDate,
+    isOfficialHoliday,
+    isRamadanStart
   };
 
 })(window);
