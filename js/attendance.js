@@ -6,13 +6,18 @@
 (function (global) {
   'use strict';
 
-  const { $, el, fmtDate, parseDate, formatHijri, fmtTime12,
+  const {
+    $, el, fmtDate, parseDate, formatHijri, fmtTime12,
     computeRangeHours, timeToMin, timeDiffMin, nowHHMM,
-    monthNamesAr, weekdayNamesAr, toast, confirmDialog, haptic, onClickOnce } = SPUtils;
+    monthNamesAr, weekdayNamesAr, toast, confirmDialog,
+    haptic, onClickOnce
+  } = SPUtils;
+
   const storage = SPStorage;
 
-  let activeDate = null;       // Date object for the day being edited
-  let originalEntry = null;    // snapshot for change detection
+  let activeDate = null;
+  let originalEntry = null;
+
   const statusLabels = {
     A: 'حضرت',
     X: 'مطبق (24 ساعة)',
@@ -21,6 +26,7 @@
   };
 
   // ---------- Hours & overtime computation ----------
+
   function getShiftForDate(date) {
     const dstr = fmtDate(date);
     const code = storage.getScheduledCode(dstr);
@@ -29,118 +35,248 @@
 
   function computeLateMinutes(date, fromTime) {
     if (!fromTime) return 0;
+
     const shift = getShiftForDate(date);
     if (!shift || !shift.startTime) return 0;
+
     const grace = Number(storage.getSettings().lateGraceMinutes) || 0;
     const diff = timeDiffMin(shift.startTime, fromTime);
-    // If fromTime is before startTime, no lateness
-    // If diff is huge (>12h) it likely means fromTime is the next day, so ignore
+
     if (diff > 12 * 60) return 0;
+
     return Math.max(0, diff - grace);
   }
 
   function computeEarlyLeaveMinutes(date, toTime) {
     if (!toTime) return 0;
+
     const shift = getShiftForDate(date);
     if (!shift || !shift.endTime) return 0;
-    // Compare toTime with shift.endTime, but if shift crosses midnight,
-    // endTime could be next day. For simplicity assume same-day if toTime >= startTime.
+
     const diff = timeDiffMin(toTime, shift.endTime);
-    if (diff > 12 * 60) return 0; // ignore if too large
+
+    if (diff > 12 * 60) return 0;
+
     return Math.max(0, diff);
   }
 
   function computeOvertimeHours(date, entry) {
     const settings = storage.getSettings();
+
     if (!settings.overtimeEnabled) return 0;
+
     const actualHours = computeActualHours(entry);
+
     let threshold = Number(settings.overtimeAfterHours) || 0;
+
     if (threshold === 0) {
       const shift = getShiftForDate(date);
-      threshold = shift ? shift.hours : (Number(settings.shiftHours) || 12);
+      threshold = shift
+        ? Number(shift.hours) || 0
+        : (Number(settings.shiftHours) || 12);
     }
-    return Math.max(0, Math.round((actualHours - threshold) * 100) / 100);
+
+    return Math.max(
+      0,
+      Math.round((actualHours - threshold) * 100) / 100
+    );
   }
+
+  // ---------- Duration ----------
 
   function getEntryDurationHours(entry) {
-  if (!entry || !entry.from || !entry.to) return 0;
+    if (!entry || !entry.from || !entry.to) {
+      return 0;
+    }
 
-  if (entry.fromDate && entry.toDate) {
-    const start = new Date(
-      entry.fromDate + 'T' + entry.from + ':00'
-    );
+    /*
+      لو فيه تاريخ بداية ونهاية
+      نحسب المدة الحقيقية بالتاريخ والوقت.
+    */
+    if (entry.fromDate && entry.toDate) {
+      const start = new Date(
+        entry.fromDate + 'T' + entry.from + ':00'
+      );
 
-    const end = new Date(
-      entry.toDate + 'T' + entry.to + ':00'
-    );
+      const end = new Date(
+        entry.toDate + 'T' + entry.to + ':00'
+      );
 
-    const diff = (end - start) / 3600000;
+      if (
+        Number.isNaN(start.getTime()) ||
+        Number.isNaN(end.getTime())
+      ) {
+        return 0;
+      }
 
-    return Math.round(diff * 100) / 100;
+      const diff = (end - start) / 3600000;
+
+      if (diff <= 0) return 0;
+
+      return Math.round(diff * 100) / 100;
+    }
+
+    return computeRangeHours(entry.from, entry.to);
   }
 
-  return computeRangeHours(entry.from, entry.to);
-}
+  function computeActualHours(entry) {
+    if (!entry) return 0;
 
-function computeActualHours(entry) {
-  if (!entry) return 0;
+    // غياب
+    if (entry.status === 'B') {
+      return 0;
+    }
 
-  if (entry.status === 'B') return 0;
+    // لو فيه بداية ونهاية
+    if (entry.from && entry.to) {
+      const duration = getEntryDurationHours(entry);
 
-  if (entry.from && entry.to) {
-    return getEntryDurationHours(entry);
+      if (duration > 0) {
+        return duration;
+      }
+    }
+
+    const sh =
+      Number(storage.getSettings().shiftHours) || 12;
+
+    // مطبق 24 ساعة
+    if (entry.status === 'X') {
+      return sh * 2;
+    }
+
+    // حضور أو إجازة
+    if (
+      entry.status === 'A' ||
+      entry.status === 'L'
+    ) {
+      return sh;
+    }
+
+    return 0;
   }
-
-  const sh = Number(storage.getSettings().shiftHours) || 12;
-
-  if (entry.status === 'X') return sh * 2;
-
-  if (entry.status === 'A' || entry.status === 'L') return sh;
-
-  return 0;
-}
 
   function dayValue(date, entry) {
     if (!entry) return 0;
+
     const s = storage.getSettings();
-    const hourlyRate = s.hourlyRate > 0
-      ? Number(s.hourlyRate)
-      : (Number(s.salary) || 0) / (Number(s.monthlyHours) || 1);
+
+    const hourlyRate =
+      s.hourlyRate > 0
+        ? Number(s.hourlyRate)
+        : (Number(s.salary) || 0) /
+          (Number(s.monthlyHours) || 1);
+
     const actual = computeActualHours(entry);
     const overtime = computeOvertimeHours(date, entry);
+
     const base = actual - overtime;
-    const overtimeValue = overtime * hourlyRate * (Number(s.overtimeRate) || 1.5);
+
+    const overtimeValue =
+      overtime *
+      hourlyRate *
+      (Number(s.overtimeRate) || 1.5);
+
     return (base * hourlyRate) + overtimeValue;
   }
 
   // ---------- Day Sheet ----------
+
   function openDaySheet(date) {
     activeDate = date;
+
     const dstr = fmtDate(date);
+
     const code = storage.getScheduledCode(dstr);
     const entry = storage.getEntry(dstr);
-    originalEntry = entry ? JSON.parse(JSON.stringify(entry)) : null;
+
+    originalEntry = entry
+      ? JSON.parse(JSON.stringify(entry))
+      : null;
 
     $('#daySheetTitle').textContent =
       `${date.getDate()} ${monthNamesAr[date.getMonth()]} ${date.getFullYear()}`;
-    $('#daySheetHijri').textContent = formatHijri(date);
-    const shift = code ? storage.getShiftByCode(code) : null;
+
+    $('#daySheetHijri').textContent =
+      formatHijri(date);
+
+    const shift = code
+      ? storage.getShiftByCode(code)
+      : null;
+
     $('#daySheetSub').textContent =
       `الوردية: ${shift ? shift.name : 'غير محدد'}` +
-      (shift && shift.startTime ? ` — ${fmtTime12(shift.startTime)} إلى ${fmtTime12(shift.endTime)}` : '') +
-      (entry ? ` — الحضور: ${statusLabels[entry.status] || '—'}` : '');
+      (
+        shift && shift.startTime
+          ? ` — ${fmtTime12(shift.startTime)} إلى ${fmtTime12(shift.endTime)}`
+          : ''
+      ) +
+      (
+        entry
+          ? ` — الحضور: ${statusLabels[entry.status] || '—'}`
+          : ''
+      );
 
     renderShiftPicker(code);
 
-    // Fill form fields
-    $('#inpFrom').value = entry && entry.from ? entry.from : '';
-    $('#inpTo').value = entry && entry.to ? entry.to : '';
-    $('#inpNote').value = entry && entry.note ? entry.note : '';
-    $('#inpLocation').value = entry && entry.location ? entry.location : '';
-    $('#inpAbsenceReason').value = entry && entry.absenceReason ? entry.absenceReason : '';
-    $('#inpLeaveType').value = entry && entry.leaveType ? entry.leaveType : '';
-    $('#inpLeaveType').disabled = !(entry && entry.status === 'L');
-    $('#inpAbsenceReason').disabled = !(entry && entry.status === 'B');
+    // ---------- Fill form ----------
+
+    $('#inpFrom').value =
+      entry && entry.from
+        ? entry.from
+        : '';
+
+    $('#inpTo').value =
+      entry && entry.to
+        ? entry.to
+        : '';
+
+    /*
+      تاريخ البداية والنهاية
+
+      لو التسجيل القديم مفيهوش تاريخ،
+      نستخدم تاريخ اليوم المفتوح في الشيت.
+    */
+    const defaultDate = fmtDate(date);
+
+    if ($('#inpFromDate')) {
+      $('#inpFromDate').value =
+        entry && entry.fromDate
+          ? entry.fromDate
+          : defaultDate;
+    }
+
+    if ($('#inpToDate')) {
+      $('#inpToDate').value =
+        entry && entry.toDate
+          ? entry.toDate
+          : defaultDate;
+    }
+
+    $('#inpNote').value =
+      entry && entry.note
+        ? entry.note
+        : '';
+
+    $('#inpLocation').value =
+      entry && entry.location
+        ? entry.location
+        : '';
+
+    $('#inpAbsenceReason').value =
+      entry && entry.absenceReason
+        ? entry.absenceReason
+        : '';
+
+    $('#inpLeaveType').value =
+      entry && entry.leaveType
+        ? entry.leaveType
+        : '';
+
+    $('#inpLeaveType').disabled =
+      !(entry && entry.status === 'L');
+
+    $('#inpAbsenceReason').disabled =
+      !(entry && entry.status === 'B');
 
     updateDurationPreview();
     updateComputedStats();
@@ -152,44 +288,104 @@ function computeActualHours(entry) {
   function closeDaySheet() {
     $('#dayOverlay').classList.remove('show');
     $('#daySheet').classList.remove('show');
+
     activeDate = null;
     originalEntry = null;
   }
 
   function renderShiftPicker(activeCode) {
     const picker = $('#shiftPicker');
+
     picker.innerHTML = '';
+
     const shifts = storage.getShifts();
+
     shifts.forEach((s) => {
-      const btn = el('button', {
-        class: 'chip' + (s.code === activeCode ? ' active' : ''),
-        style: s.code === activeCode
-          ? `background:${s.color};color:#fff;border-color:${s.color};`
-          : `border-color:${s.color};color:${s.color};`,
-        'data-shift-code': s.code
-      }, [s.name]);
-      btn.addEventListener('click', () => setSchedule(s.code));
+      const btn = el(
+        'button',
+        {
+          class:
+            'chip' +
+            (s.code === activeCode ? ' active' : ''),
+
+          style:
+            s.code === activeCode
+              ? `background:${s.color};color:#fff;border-color:${s.color};`
+              : `border-color:${s.color};color:${s.color};`,
+
+          'data-shift-code': s.code
+        },
+        [s.name]
+      );
+
+      btn.addEventListener(
+        'click',
+        () => setSchedule(s.code)
+      );
+
       picker.appendChild(btn);
     });
   }
 
   function setSchedule(code) {
     if (!activeDate) return;
+
     const dstr = fmtDate(activeDate);
+
     storage.setSchedule(dstr, code);
-    // Refresh sheet to show the change
+
     openDaySheet(activeDate);
+
     SPUtils.haptic(10);
+
     SPApp.onDataChange();
   }
 
   function updateDurationPreview() {
     const from = $('#inpFrom').value;
     const to = $('#inpTo').value;
+
     const preview = $('#durationPreview');
+
     if (from && to) {
-      const h = computeRangeHours(from, to);
-      preview.textContent = `المدة: ${h} ساعة — ${fmtTime12(from)} إلى ${fmtTime12(to)}`;
+      let h = computeRangeHours(from, to);
+
+      /*
+        لو التاريخين موجودين نحسب باليوم كمان.
+      */
+      if (
+        $('#inpFromDate') &&
+        $('#inpToDate') &&
+        $('#inpFromDate').value &&
+        $('#inpToDate').value
+      ) {
+        const start = new Date(
+          $('#inpFromDate').value +
+          'T' +
+          from +
+          ':00'
+        );
+
+        const end = new Date(
+          $('#inpToDate').value +
+          'T' +
+          to +
+          ':00'
+        );
+
+        if (
+          !Number.isNaN(start.getTime()) &&
+          !Number.isNaN(end.getTime()) &&
+          end > start
+        ) {
+          h = Math.round(
+            ((end - start) / 3600000) * 100
+          ) / 100;
+        }
+      }
+
+      preview.textContent =
+        `المدة: ${h} ساعة — ${fmtTime12(from)} إلى ${fmtTime12(to)}`;
     } else {
       preview.textContent = '';
     }
@@ -197,229 +393,723 @@ function computeActualHours(entry) {
 
   function updateComputedStats() {
     if (!activeDate) return;
-    const entry = collectEntryFromForm();
-    const hours = computeActualHours(entry);
-    const overtime = computeOvertimeHours(activeDate, entry);
-    const from = entry ? entry.from : '';
-    const to = entry ? entry.to : '';
-    const late = computeLateMinutes(activeDate, from);
-    const early = computeEarlyLeaveMinutes(activeDate, to);
 
-    $('#daySheetHours').textContent = hours + ' س';
-    $('#daySheetOvertime').textContent = overtime + ' س';
-    $('#daySheetLate').textContent = late;
-    $('#daySheetEarly').textContent = early;
+    const entry = collectEntryFromForm({
+      silent: true
+    });
+
+    const hours =
+      computeActualHours(entry);
+
+    const overtime =
+      computeOvertimeHours(activeDate, entry);
+
+    const from =
+      entry ? entry.from : '';
+
+    const to =
+      entry ? entry.to : '';
+
+    const late =
+      computeLateMinutes(activeDate, from);
+
+    const early =
+      computeEarlyLeaveMinutes(activeDate, to);
+
+    $('#daySheetHours').textContent =
+      hours + ' س';
+
+    $('#daySheetOvertime').textContent =
+      overtime + ' س';
+
+    $('#daySheetLate').textContent =
+      late;
+
+    $('#daySheetEarly').textContent =
+      early;
   }
 
-  function collectEntryFromForm() {
+  // ---------- Collect form ----------
+
+  function collectEntryFromForm(options = {}) {
+    const silent = options.silent === true;
+
     const from = $('#inpFrom').value;
     const to = $('#inpTo').value;
-    const note = $('#inpNote').value.trim();
-    const location = $('#inpLocation').value.trim();
-    const leaveType = $('#inpLeaveType').value;
-    const absenceReason = $('#inpAbsenceReason').value.trim();
 
-    // Determine status from existing entry or form state
-    let status = originalEntry ? originalEntry.status : null;
-    // If from/to filled, assume present
-    if (!status && from && to) status = 'A';
-    if (!status) return null;
+    const note =
+      $('#inpNote').value.trim();
 
-    const entry = { status };
-    if (from && to && (status === 'A' || status === 'X')) {
+    const location =
+      $('#inpLocation').value.trim();
 
-  entry.fromDate = $('#inpFromDate').value;
-  entry.toDate = $('#inpToDate').value;
+    const leaveType =
+      $('#inpLeaveType').value;
 
-  entry.from = from;
-  entry.to = to;
+    const absenceReason =
+      $('#inpAbsenceReason').value.trim();
 
-  const start = new Date(
-    entry.fromDate + 'T' + entry.from + ':00'
-  );
+    let status =
+      originalEntry
+        ? originalEntry.status
+        : null;
 
-  const end = new Date(
-    entry.toDate + 'T' + entry.to + ':00'
-  );
-
-  const hours = (end - start) / 3600000;
-
-  if (hours <= 0) {
-    toast(
-      'تاريخ ووقت النهاية يجب أن يكون بعد البداية',
-      'error'
-    );
-    return;
-  }
-
-  if (hours > 36) {
-    toast(
-      'أقصى مدة لتسجيل الحضور هي 36 ساعة',
-      'error'
-    );
-    return;
-  }
-}
+    /*
+      لو المستخدم كتب وقت بداية ونهاية
+      نعتبرها حضور تلقائي.
+    */
+    if (!status && from && to) {
+      status = 'A';
     }
-    if (note) entry.note = note;
-    if (location) entry.location = location;
-    if (status === 'L' && leaveType) entry.leaveType = leaveType;
-    if (status === 'B' && absenceReason) entry.absenceReason = absenceReason;
+
+    if (!status) {
+      return null;
+    }
+
+    const entry = {
+      status
+    };
+
+    // ---------- Attendance ----------
+
+    if (
+      from &&
+      to &&
+      (status === 'A' || status === 'X')
+    ) {
+      entry.from = from;
+      entry.to = to;
+
+      /*
+        تاريخ البداية
+      */
+      entry.fromDate =
+        $('#inpFromDate') &&
+        $('#inpFromDate').value
+          ? $('#inpFromDate').value
+          : (
+              activeDate
+                ? fmtDate(activeDate)
+                : ''
+            );
+
+      /*
+        تاريخ النهاية
+      */
+      entry.toDate =
+        $('#inpToDate') &&
+        $('#inpToDate').value
+          ? $('#inpToDate').value
+          : (
+              activeDate
+                ? fmtDate(activeDate)
+                : ''
+            );
+
+      /*
+        التحقق من التاريخ والوقت
+      */
+      if (
+        entry.fromDate &&
+        entry.toDate
+      ) {
+        const start = new Date(
+          entry.fromDate +
+          'T' +
+          entry.from +
+          ':00'
+        );
+
+        const end = new Date(
+          entry.toDate +
+          'T' +
+          entry.to +
+          ':00'
+        );
+
+        if (
+          Number.isNaN(start.getTime()) ||
+          Number.isNaN(end.getTime())
+        ) {
+          if (!silent) {
+            toast(
+              'التاريخ أو الوقت غير صحيح',
+              'error'
+            );
+          }
+
+          return null;
+        }
+
+        const hours =
+          (end - start) / 3600000;
+
+        if (hours <= 0) {
+          if (!silent) {
+            toast(
+              'تاريخ ووقت النهاية يجب أن يكون بعد البداية',
+              'error'
+            );
+          }
+
+          return null;
+        }
+
+        if (hours > 36) {
+          if (!silent) {
+            toast(
+              'أقصى مدة لتسجيل الحضور هي 36 ساعة',
+              'error'
+            );
+          }
+
+          return null;
+        }
+      }
+    }
+
+    if (note) {
+      entry.note = note;
+    }
+
+    if (location) {
+      entry.location = location;
+    }
+
+    if (
+      status === 'L' &&
+      leaveType
+    ) {
+      entry.leaveType = leaveType;
+    }
+
+    if (
+      status === 'B' &&
+      absenceReason
+    ) {
+      entry.absenceReason =
+        absenceReason;
+    }
+
     return entry;
   }
 
+  // ---------- Status ----------
+
   function setStatus(code) {
     if (!activeDate) return;
-    const from = $('#inpFrom').value;
-    const to = $('#inpTo').value;
-    const note = $('#inpNote').value.trim();
-    const location = $('#inpLocation').value.trim();
-    const leaveType = $('#inpLeaveType').value;
-    const absenceReason = $('#inpAbsenceReason').value.trim();
 
-    const entry = { status: code };
-    if ((code === 'A' || code === 'X') && from && to) {
+    const from =
+      $('#inpFrom').value;
+
+    const to =
+      $('#inpTo').value;
+
+    const note =
+      $('#inpNote').value.trim();
+
+    const location =
+      $('#inpLocation').value.trim();
+
+    const leaveType =
+      $('#inpLeaveType').value;
+
+    const absenceReason =
+      $('#inpAbsenceReason').value.trim();
+
+    const entry = {
+      status: code
+    };
+
+    if (
+      (code === 'A' || code === 'X') &&
+      from &&
+      to
+    ) {
       entry.from = from;
       entry.to = to;
-    }
-    if (code === 'A' && !from && !to) {
-      // Auto-fill with current time for from, leave to empty
-      entry.from = nowHHMM();
-      $('#inpFrom').value = entry.from;
-    }
-    if (note) entry.note = note;
-    if (location) entry.location = location;
-    if (code === 'L' && leaveType) entry.leaveType = leaveType;
-    if (code === 'B' && absenceReason) entry.absenceReason = absenceReason;
 
-    storage.setEntry(fmtDate(activeDate), entry);
-    originalEntry = JSON.parse(JSON.stringify(entry));
+      if (
+        $('#inpFromDate') &&
+        $('#inpFromDate').value
+      ) {
+        entry.fromDate =
+          $('#inpFromDate').value;
+      }
+
+      if (
+        $('#inpToDate') &&
+        $('#inpToDate').value
+      ) {
+        entry.toDate =
+          $('#inpToDate').value;
+      }
+    }
+
+    /*
+      تسجيل حضور سريع
+    */
+    if (
+      code === 'A' &&
+      !from &&
+      !to
+    ) {
+      entry.from = nowHHMM();
+
+      $('#inpFrom').value =
+        entry.from;
+
+      if (
+        $('#inpFromDate') &&
+        !$('#inpFromDate').value
+      ) {
+        $('#inpFromDate').value =
+          fmtDate(activeDate);
+      }
+    }
+
+    if (note) {
+      entry.note = note;
+    }
+
+    if (location) {
+      entry.location = location;
+    }
+
+    if (
+      code === 'L' &&
+      leaveType
+    ) {
+      entry.leaveType =
+        leaveType;
+    }
+
+    if (
+      code === 'B' &&
+      absenceReason
+    ) {
+      entry.absenceReason =
+        absenceReason;
+    }
+
+    storage.setEntry(
+      fmtDate(activeDate),
+      entry
+    );
+
+    originalEntry =
+      JSON.parse(
+        JSON.stringify(entry)
+      );
+
     SPUtils.haptic(12);
-    SPUtils.toast(`تم تسجيل: ${statusLabels[code]}`, 'success');
+
+    SPUtils.toast(
+      `تم تسجيل: ${statusLabels[code]}`,
+      'success'
+    );
+
     closeDaySheet();
+
     SPApp.onDataChange();
   }
+
+  // ---------- Delete ----------
 
   async function deleteEntry() {
     if (!activeDate) return;
-    const ok = await confirmDialog(
-      'سيتم حذف تسجيل الحضور لهذا اليوم. هل أنت متأكد؟',
-      { okText: 'حذف', cancelText: 'إلغاء', danger: true, title: 'حذف التسجيل' }
-    );
+
+    const ok =
+      await confirmDialog(
+        'سيتم حذف تسجيل الحضور لهذا اليوم. هل أنت متأكد؟',
+        {
+          okText: 'حذف',
+          cancelText: 'إلغاء',
+          danger: true,
+          title: 'حذف التسجيل'
+        }
+      );
+
     if (!ok) return;
-    storage.deleteEntry(fmtDate(activeDate));
+
+    storage.deleteEntry(
+      fmtDate(activeDate)
+    );
+
     SPUtils.haptic(15);
-    SPUtils.toast('تم حذف التسجيل', 'success');
+
+    SPUtils.toast(
+      'تم حذف التسجيل',
+      'success'
+    );
+
     closeDaySheet();
+
     SPApp.onDataChange();
   }
+
+  // ---------- Save ----------
 
   function saveDay() {
     if (!activeDate) return;
-    const entry = collectEntryFromForm();
+
+    const entry =
+      collectEntryFromForm();
+
     if (!entry) {
-      toast('حدد نوع الحضور أولًا (حضرت / مطبق / إجازة / غياب)', 'warning');
+      toast(
+        'حدد نوع الحضور أولًا (حضرت / مطبق / إجازة / غياب)',
+        'warning'
+      );
       return;
     }
-    // Validate times
-    if ((entry.status === 'A' || entry.status === 'X') && entry.from && entry.to) {
-      const h = computeRangeHours(entry.from, entry.to);
+
+    /*
+      تحقق إضافي من المدة
+    */
+    if (
+      (entry.status === 'A' ||
+       entry.status === 'X') &&
+      entry.from &&
+      entry.to
+    ) {
+      const h =
+        getEntryDurationHours(entry);
+
       if (h <= 0 || h > 36) {
-        toast('الوقت غير منطقي — تحقق من القيم', 'error');
+        toast(
+          'الوقت غير منطقي — تحقق من القيم',
+          'error'
+        );
         return;
       }
     }
-    storage.setEntry(fmtDate(activeDate), entry);
+
+    storage.setEntry(
+      fmtDate(activeDate),
+      entry
+    );
+
+    originalEntry =
+      JSON.parse(
+        JSON.stringify(entry)
+      );
+
     SPUtils.haptic(12);
-    toast('تم الحفظ بنجاح', 'success');
+
+    toast(
+      'تم الحفظ بنجاح',
+      'success'
+    );
+
     closeDaySheet();
+
     SPApp.onDataChange();
   }
 
-  // ---------- Copy day to other days ----------
+  // ---------- Copy day ----------
+
   async function copyDayToOthers() {
     if (!activeDate || !originalEntry) {
-      toast('لا يوجد تسجيل لنسخه', 'warning');
+      toast(
+        'لا يوجد تسجيل لنسخه',
+        'warning'
+      );
       return;
     }
-    const ok = await confirmDialog(
-      'سيتم نسخ تسجيل هذا اليوم (الحالة والوقت والملاحظة) إلى أيام أخرى. تستطيع تحديد الأيام من التقويم بعد الإغلاق. اضغط مطولاً على أي يوم لتحديده ثم اضغط "تطبيق".\n\nملاحظة: لن يتم نسخ نوع الوردية.',
-      { okText: 'بدء التحديد', cancelText: 'إلغاء', title: 'نسخ التسجيل' }
-    );
+
+    const ok =
+      await confirmDialog(
+        'سيتم نسخ تسجيل هذا اليوم (الحالة والوقت والملاحظة) إلى أيام أخرى. تستطيع تحديد الأيام من التقويم بعد الإغلاق. اضغط مطولاً على أي يوم لتحديده ثم اضغط "تطبيق".\n\nملاحظة: لن يتم نسخ نوع الوردية.',
+        {
+          okText: 'بدء التحديد',
+          cancelText: 'إلغاء',
+          title: 'نسخ التسجيل'
+        }
+      );
+
     if (!ok) return;
-    // Close the sheet so user can interact with calendar
+
     closeDaySheet();
-    toast('حدد الأيام في التقويم ثم اضغط "تطبيق وردية" واختر نسخ التسجيل', 'info');
-    // For copy-to-days we use a different flow: show a special toolbar with "نسخ التسجيل"
-    // We'll reuse the selection toolbar but add a temporary copy button
+
+    toast(
+      'حدد الأيام في التقويم ثم اضغط "تطبيق وردية" واختر نسخ التسجيل',
+      'info'
+    );
+
     showCopyToolbar();
   }
 
   function showCopyToolbar() {
-    const toolbar = $('#calToolbar');
+    const toolbar =
+      $('#calToolbar');
+
     toolbar.classList.add('show');
-    $('#selCount').textContent = 'حدد الأيام لنسخ التسجيل إليها';
-    // Replace the apply button with a copy button temporarily
-    const applyBtn = $('#applyShiftToSelected');
-    applyBtn.textContent = 'نسخ التسجيل';
-    applyBtn.dataset.mode = 'copy';
+
+    $('#selCount').textContent =
+      'حدد الأيام لنسخ التسجيل إليها';
+
+    const applyBtn =
+      $('#applyShiftToSelected');
+
+    applyBtn.textContent =
+      'نسخ التسجيل';
+
+    applyBtn.dataset.mode =
+      'copy';
   }
 
   // ---------- Dashboard quick actions ----------
+
   function checkInToday() {
     const today = new Date();
-    const dstr = fmtDate(today);
-    let entry = storage.getEntry(dstr) || { status: 'A' };
-    entry.status = entry.status === 'X' ? 'X' : 'A';
-    if (!entry.from) entry.from = nowHHMM();
-    // If checkOut already exists, keep it; otherwise leave empty
-    storage.setEntry(dstr, entry);
+
+    const dstr =
+      fmtDate(today);
+
+    let entry =
+      storage.getEntry(dstr) ||
+      { status: 'A' };
+
+    entry.status =
+      entry.status === 'X'
+        ? 'X'
+        : 'A';
+
+    if (!entry.from) {
+      entry.from =
+        nowHHMM();
+    }
+
+    /*
+      حفظ تاريخ بداية الحضور
+    */
+    if (!entry.fromDate) {
+      entry.fromDate =
+        dstr;
+    }
+
+    storage.setEntry(
+      dstr,
+      entry
+    );
+
     haptic(15);
-    toast(`تم تسجيل الحضور: ${fmtTime12(entry.from)}`, 'success');
+
+    toast(
+      `تم تسجيل الحضور: ${fmtTime12(entry.from)}`,
+      'success'
+    );
+
     SPApp.onDataChange();
   }
 
   function checkOutToday() {
     const today = new Date();
-    const dstr = fmtDate(today);
-    let entry = storage.getEntry(dstr);
-    if (!entry || (entry.status !== 'A' && entry.status !== 'X')) {
-      toast('لم تسجل حضور بعد — اضغط "تسجيل حضور" أولًا', 'warning');
+
+    const dstr =
+      fmtDate(today);
+
+    let entry =
+      storage.getEntry(dstr);
+
+    if (
+      !entry ||
+      (entry.status !== 'A' &&
+       entry.status !== 'X')
+    ) {
+      toast(
+        'لم تسجل حضور بعد — اضغط "تسجيل حضور" أولًا',
+        'warning'
+      );
       return;
     }
-    entry.to = nowHHMM();
-    storage.setEntry(dstr, entry);
+
+    entry.to =
+      nowHHMM();
+
+    /*
+      حفظ تاريخ الانصراف
+    */
+    if (!entry.toDate) {
+      entry.toDate =
+        dstr;
+    }
+
+    storage.setEntry(
+      dstr,
+      entry
+    );
+
     haptic(15);
-    toast(`تم تسجيل الانصراف: ${fmtTime12(entry.to)}`, 'success');
+
+    toast(
+      `تم تسجيل الانصراف: ${fmtTime12(entry.to)}`,
+      'success'
+    );
+
     SPApp.onDataChange();
   }
 
   // ---------- Init ----------
+
   function init() {
-    $('#dayOverlay').addEventListener('click', closeDaySheet);
+    $('#dayOverlay')
+      .addEventListener(
+        'click',
+        closeDaySheet
+      );
 
-    $('#inpFrom').addEventListener('input', () => { updateDurationPreview(); updateComputedStats(); });
-    $('#inpTo').addEventListener('input', () => { updateDurationPreview(); updateComputedStats(); });
+    $('#inpFrom')
+      .addEventListener(
+        'input',
+        () => {
+          updateDurationPreview();
+          updateComputedStats();
+        }
+      );
 
-    $('#markPresentBtn').addEventListener('click', onClickOnce(() => setStatus('A')));
-    $('#btnX').addEventListener('click', onClickOnce(() => setStatus('X')));
-    $('#btnL').addEventListener('click', onClickOnce(() => setStatus('L')));
-    $('#btnB').addEventListener('click', onClickOnce(() => setStatus('B')));
-    $('#schClearBtn').addEventListener('click', () => {
-      if (!activeDate) return;
-      storage.setSchedule(fmtDate(activeDate), null);
-      openDaySheet(activeDate);
-      SPApp.onDataChange();
-    });
+    $('#inpTo')
+      .addEventListener(
+        'input',
+        () => {
+          updateDurationPreview();
+          updateComputedStats();
+        }
+      );
 
-    $('#saveDayBtn').addEventListener('click', onClickOnce(saveDay));
-    $('#deleteDayBtn').addEventListener('click', onClickOnce(deleteEntry));
-    $('#copyDayBtn').addEventListener('click', onClickOnce(copyDayToOthers));
+    /*
+      تحديث الحساب عند تغيير التاريخ
+    */
+    if ($('#inpFromDate')) {
+      $('#inpFromDate')
+        .addEventListener(
+          'input',
+          () => {
+            updateDurationPreview();
+            updateComputedStats();
+          }
+        );
+
+      $('#inpFromDate')
+        .addEventListener(
+          'change',
+          () => {
+            updateDurationPreview();
+            updateComputedStats();
+          }
+        );
+    }
+
+    if ($('#inpToDate')) {
+      $('#inpToDate')
+        .addEventListener(
+          'input',
+          () => {
+            updateDurationPreview();
+            updateComputedStats();
+          }
+        );
+
+      $('#inpToDate')
+        .addEventListener(
+          'change',
+          () => {
+            updateDurationPreview();
+            updateComputedStats();
+          }
+        );
+    }
+
+    $('#markPresentBtn')
+      .addEventListener(
+        'click',
+        onClickOnce(
+          () => setStatus('A')
+        )
+      );
+
+    $('#btnX')
+      .addEventListener(
+        'click',
+        onClickOnce(
+          () => setStatus('X')
+        )
+      );
+
+    $('#btnL')
+      .addEventListener(
+        'click',
+        onClickOnce(
+          () => setStatus('L')
+        )
+      );
+
+    $('#btnB')
+      .addEventListener(
+        'click',
+        onClickOnce(
+          () => setStatus('B')
+        )
+      );
+
+    $('#schClearBtn')
+      .addEventListener(
+        'click',
+        () => {
+          if (!activeDate) return;
+
+          storage.setSchedule(
+            fmtDate(activeDate),
+            null
+          );
+
+          openDaySheet(activeDate);
+
+          SPApp.onDataChange();
+        }
+      );
+
+    $('#saveDayBtn')
+      .addEventListener(
+        'click',
+        onClickOnce(saveDay)
+      );
+
+    $('#deleteDayBtn')
+      .addEventListener(
+        'click',
+        onClickOnce(deleteEntry)
+      );
+
+    $('#copyDayBtn')
+      .addEventListener(
+        'click',
+        onClickOnce(
+          copyDayToOthers
+        )
+      );
 
     // Dashboard quick actions
-    $('#checkinBtn').addEventListener('click', onClickOnce(checkInToday));
-    $('#checkoutBtn').addEventListener('click', onClickOnce(checkOutToday));
+
+    $('#checkinBtn')
+      .addEventListener(
+        'click',
+        onClickOnce(
+          checkInToday
+        )
+      );
+
+    $('#checkoutBtn')
+      .addEventListener(
+        'click',
+        onClickOnce(
+          checkOutToday
+        )
+      );
   }
+
+  // ---------- Public API ----------
 
   global.SPAttendance = {
     init,
@@ -433,4 +1123,5 @@ function computeActualHours(entry) {
     dayValue,
     statusLabels
   };
+
 })(window);
