@@ -62,15 +62,43 @@
     return Math.max(0, Math.round((actualHours - threshold) * 100) / 100);
   }
 
-  function computeActualHours(entry) {
-    if (!entry) return 0;
-    if (entry.status === 'B') return 0;
-    if (entry.from && entry.to) return computeRangeHours(entry.from, entry.to);
-    const sh = Number(storage.getSettings().shiftHours) || 12;
-    if (entry.status === 'X') return sh * 2;
-    if (entry.status === 'A' || entry.status === 'L') return sh;
-    return 0;
+  function getEntryDurationHours(entry) {
+  if (!entry || !entry.from || !entry.to) return 0;
+
+  if (entry.fromDate && entry.toDate) {
+    const start = new Date(
+      entry.fromDate + 'T' + entry.from + ':00'
+    );
+
+    const end = new Date(
+      entry.toDate + 'T' + entry.to + ':00'
+    );
+
+    const diff = (end - start) / 3600000;
+
+    return Math.round(diff * 100) / 100;
   }
+
+  return computeRangeHours(entry.from, entry.to);
+}
+
+function computeActualHours(entry) {
+  if (!entry) return 0;
+
+  if (entry.status === 'B') return 0;
+
+  if (entry.from && entry.to) {
+    return getEntryDurationHours(entry);
+  }
+
+  const sh = Number(storage.getSettings().shiftHours) || 12;
+
+  if (entry.status === 'X') return sh * 2;
+
+  if (entry.status === 'A' || entry.status === 'L') return sh;
+
+  return 0;
+}
 
   function dayValue(date, entry) {
     if (!entry) return 0;
