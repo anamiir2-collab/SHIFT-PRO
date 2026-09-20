@@ -227,8 +227,39 @@ function computeActualHours(entry) {
 
     const entry = { status };
     if (from && to && (status === 'A' || status === 'X')) {
-      entry.from = from;
-      entry.to = to;
+
+  entry.fromDate = $('#inpFromDate').value;
+  entry.toDate = $('#inpToDate').value;
+
+  entry.from = from;
+  entry.to = to;
+
+  const start = new Date(
+    entry.fromDate + 'T' + entry.from + ':00'
+  );
+
+  const end = new Date(
+    entry.toDate + 'T' + entry.to + ':00'
+  );
+
+  const hours = (end - start) / 3600000;
+
+  if (hours <= 0) {
+    toast(
+      'تاريخ ووقت النهاية يجب أن يكون بعد البداية',
+      'error'
+    );
+    return;
+  }
+
+  if (hours > 36) {
+    toast(
+      'أقصى مدة لتسجيل الحضور هي 36 ساعة',
+      'error'
+    );
+    return;
+  }
+}
     }
     if (note) entry.note = note;
     if (location) entry.location = location;
