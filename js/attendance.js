@@ -7,10 +7,22 @@
   'use strict';
 
   const {
-    $, el, fmtDate, parseDate, formatHijri, fmtTime12,
-    computeRangeHours, timeToMin, timeDiffMin, nowHHMM,
-    monthNamesAr, weekdayNamesAr, toast, confirmDialog,
-    haptic, onClickOnce
+    $,
+    el,
+    fmtDate,
+    parseDate,
+    formatHijri,
+    fmtTime12,
+    computeRangeHours,
+    timeToMin,
+    timeDiffMin,
+    nowHHMM,
+    monthNamesAr,
+    weekdayNamesAr,
+    toast,
+    confirmDialog,
+    haptic,
+    onClickOnce
   } = SPUtils;
 
   const storage = SPStorage;
@@ -30,63 +42,103 @@
   function getShiftForDate(date) {
     const dstr = fmtDate(date);
     const code = storage.getScheduledCode(dstr);
-    return code ? storage.getShiftByCode(code) : null;
+
+    return code
+      ? storage.getShiftByCode(code)
+      : null;
   }
 
   function computeLateMinutes(date, fromTime) {
     if (!fromTime) return 0;
 
     const shift = getShiftForDate(date);
-    if (!shift || !shift.startTime) return 0;
+
+    if (!shift || !shift.startTime) {
+      return 0;
+    }
 
     const grace =
-      Number(storage.getSettings().lateGraceMinutes) || 0;
+      Number(
+        storage.getSettings().lateGraceMinutes
+      ) || 0;
 
     const diff =
-      timeDiffMin(shift.startTime, fromTime);
+      timeDiffMin(
+        shift.startTime,
+        fromTime
+      );
 
-    if (diff > 12 * 60) return 0;
+    if (diff > 12 * 60) {
+      return 0;
+    }
 
-    return Math.max(0, diff - grace);
+    return Math.max(
+      0,
+      diff - grace
+    );
   }
 
   function computeEarlyLeaveMinutes(date, toTime) {
     if (!toTime) return 0;
 
     const shift = getShiftForDate(date);
-    if (!shift || !shift.endTime) return 0;
+
+    if (!shift || !shift.endTime) {
+      return 0;
+    }
 
     const diff =
-      timeDiffMin(toTime, shift.endTime);
+      timeDiffMin(
+        toTime,
+        shift.endTime
+      );
 
-    if (diff > 12 * 60) return 0;
+    if (diff > 12 * 60) {
+      return 0;
+    }
 
-    return Math.max(0, diff);
+    return Math.max(
+      0,
+      diff
+    );
   }
 
   function computeOvertimeHours(date, entry) {
-    const settings = storage.getSettings();
+    const settings =
+      storage.getSettings();
 
-    if (!settings.overtimeEnabled) return 0;
+    if (!settings.overtimeEnabled) {
+      return 0;
+    }
 
     const actualHours =
       computeActualHours(entry);
 
     let threshold =
-      Number(settings.overtimeAfterHours) || 0;
+      Number(
+        settings.overtimeAfterHours
+      ) || 0;
 
     if (threshold === 0) {
-      const shift = getShiftForDate(date);
+      const shift =
+        getShiftForDate(date);
 
       threshold = shift
         ? Number(shift.hours) || 0
-        : (Number(settings.shiftHours) || 12);
+        : (
+            Number(
+              settings.shiftHours
+            ) || 12
+          );
     }
 
     return Math.max(
       0,
       Math.round(
-        (actualHours - threshold) * 100
+        (
+          actualHours -
+          threshold
+        ) * 100
       ) / 100
     );
   }
@@ -110,31 +162,41 @@
       entry.fromDate &&
       entry.toDate
     ) {
-      const start = new Date(
-        entry.fromDate +
-        'T' +
-        entry.from +
-        ':00'
-      );
+      const start =
+        new Date(
+          entry.fromDate +
+          'T' +
+          entry.from +
+          ':00'
+        );
 
-      const end = new Date(
-        entry.toDate +
-        'T' +
-        entry.to +
-        ':00'
-      );
+      const end =
+        new Date(
+          entry.toDate +
+          'T' +
+          entry.to +
+          ':00'
+        );
 
       if (
-        Number.isNaN(start.getTime()) ||
-        Number.isNaN(end.getTime())
+        Number.isNaN(
+          start.getTime()
+        ) ||
+        Number.isNaN(
+          end.getTime()
+        )
       ) {
         return 0;
       }
 
       const diff =
-        (end - start) / 3600000;
+        (
+          end - start
+        ) / 3600000;
 
-      if (diff <= 0) return 0;
+      if (diff <= 0) {
+        return 0;
+      }
 
       return Math.round(
         diff * 100
@@ -150,12 +212,47 @@
   function computeActualHours(entry) {
     if (!entry) return 0;
 
-    // غياب
+    // ---------- غياب ----------
     if (entry.status === 'B') {
       return 0;
     }
 
     /*
+      ---------- إجازة ----------
+
+      الإجازة تعتمد على نفس الحقل
+      leaveHours الموجود داخل سجل اليوم.
+
+      مثال:
+      8 ساعات  = يوم كامل
+      4 ساعات  = نصف يوم
+      6 ساعات  = 0.75 يوم
+    */
+    if (entry.status === 'L') {
+      const leaveHours =
+        Number(
+          entry.leaveHours
+        );
+
+      if (
+        Number.isFinite(
+          leaveHours
+        ) &&
+        leaveHours >= 0
+      ) {
+        return Math.min(
+          24,
+          leaveHours
+        );
+      }
+
+      // القيمة الافتراضية للإجازة
+      return 8;
+    }
+
+    /*
+      ---------- حضور ----------
+
       لو فيه بداية ونهاية
       نحسب المدة الفعلية للحضور.
     */
@@ -168,7 +265,9 @@
       )
     ) {
       const duration =
-        getEntryDurationHours(entry);
+        getEntryDurationHours(
+          entry
+        );
 
       if (duration > 0) {
         return duration;
@@ -176,38 +275,18 @@
     }
 
     const sh =
-      Number(storage.getSettings().shiftHours) || 12;
+      Number(
+        storage.getSettings().shiftHours
+      ) || 12;
 
-    // مطبق 24 ساعة
+    // ---------- مطبق 24 ساعة ----------
     if (entry.status === 'X') {
       return sh * 2;
     }
 
-    // حضور
+    // ---------- حضور ----------
     if (entry.status === 'A') {
       return sh;
-    }
-
-    /*
-      إجازة:
-      تعتمد على عدد الساعات الذي حدده المستخدم.
-      الافتراضي 8 ساعات.
-    */
-    if (entry.status === 'L') {
-      const leaveHours =
-        Number(entry.leaveHours);
-
-      if (
-        Number.isFinite(leaveHours) &&
-        leaveHours >= 0
-      ) {
-        return Math.min(
-          24,
-          leaveHours
-        );
-      }
-
-      return 8;
     }
 
     return 0;
@@ -221,16 +300,24 @@
 
     const hourlyRate =
       s.hourlyRate > 0
-        ? Number(s.hourlyRate)
+        ? Number(
+            s.hourlyRate
+          )
         : (
-            Number(s.salary) || 0
+            Number(
+              s.salary
+            ) || 0
           ) /
           (
-            Number(s.monthlyHours) || 1
+            Number(
+              s.monthlyHours
+            ) || 1
           );
 
     const actual =
-      computeActualHours(entry);
+      computeActualHours(
+        entry
+      );
 
     const overtime =
       computeOvertimeHours(
@@ -239,18 +326,23 @@
       );
 
     const base =
-      actual - overtime;
+      actual -
+      overtime;
 
     const overtimeValue =
       overtime *
       hourlyRate *
       (
-        Number(s.overtimeRate) || 1.5
+        Number(
+          s.overtimeRate
+        ) || 1.5
       );
 
     return (
-      base * hourlyRate
-    ) + overtimeValue;
+      base *
+      hourlyRate
+    ) +
+    overtimeValue;
   }
 
   // ---------- Leave Hours UI ----------
@@ -268,7 +360,9 @@
       status === 'L';
 
     group.style.display =
-      isLeave ? '' : 'none';
+      isLeave
+        ? ''
+        : 'none';
 
     if (input) {
       input.disabled =
@@ -295,21 +389,29 @@
       fmtDate(date);
 
     const code =
-      storage.getScheduledCode(dstr);
+      storage.getScheduledCode(
+        dstr
+      );
 
     const entry =
-      storage.getEntry(dstr);
+      storage.getEntry(
+        dstr
+      );
 
     originalEntry =
       entry
         ? JSON.parse(
-            JSON.stringify(entry)
+            JSON.stringify(
+              entry
+            )
           )
         : null;
 
     $('#daySheetTitle').textContent =
       `${date.getDate()} ${
-        monthNamesAr[date.getMonth()]
+        monthNamesAr[
+          date.getMonth()
+        ]
       } ${date.getFullYear()}`;
 
     $('#daySheetHijri').textContent =
@@ -317,7 +419,9 @@
 
     const shift =
       code
-        ? storage.getShiftByCode(code)
+        ? storage.getShiftByCode(
+            code
+          )
         : null;
 
     $('#daySheetSub').textContent =
@@ -346,7 +450,9 @@
           : ''
       );
 
-    renderShiftPicker(code);
+    renderShiftPicker(
+      code
+    );
 
     // ---------- Fill form ----------
 
@@ -362,23 +468,22 @@
 
     /*
       تاريخ البداية والنهاية
-
-      لو التسجيل القديم مفيهوش تاريخ،
-      نستخدم تاريخ اليوم المفتوح في الشيت.
     */
     const defaultDate =
       fmtDate(date);
 
     if ($('#inpFromDate')) {
       $('#inpFromDate').value =
-        entry && entry.fromDate
+        entry &&
+        entry.fromDate
           ? entry.fromDate
           : defaultDate;
     }
 
     if ($('#inpToDate')) {
       $('#inpToDate').value =
-        entry && entry.toDate
+        entry &&
+        entry.toDate
           ? entry.toDate
           : defaultDate;
     }
@@ -394,12 +499,14 @@
         : '';
 
     $('#inpAbsenceReason').value =
-      entry && entry.absenceReason
+      entry &&
+      entry.absenceReason
         ? entry.absenceReason
         : '';
 
     $('#inpLeaveType').value =
-      entry && entry.leaveType
+      entry &&
+      entry.leaveType
         ? entry.leaveType
         : '';
 
@@ -436,24 +543,34 @@
     updateComputedStats();
 
     $('#dayOverlay')
-      .classList.add('show');
+      .classList.add(
+        'show'
+      );
 
     $('#daySheet')
-      .classList.add('show');
+      .classList.add(
+        'show'
+      );
   }
 
   function closeDaySheet() {
     $('#dayOverlay')
-      .classList.remove('show');
+      .classList.remove(
+        'show'
+      );
 
     $('#daySheet')
-      .classList.remove('show');
+      .classList.remove(
+        'show'
+      );
 
     activeDate = null;
     originalEntry = null;
   }
 
-  function renderShiftPicker(activeCode) {
+  function renderShiftPicker(
+    activeCode
+  ) {
     const picker =
       $('#shiftPicker');
 
@@ -462,43 +579,56 @@
     const shifts =
       storage.getShifts();
 
-    shifts.forEach((s) => {
-      const btn = el(
-        'button',
-        {
-          class:
-            'chip' +
-            (
-              s.code === activeCode
-                ? ' active'
-                : ''
-            ),
+    shifts.forEach(
+      (s) => {
+        const btn = el(
+          'button',
+          {
+            class:
+              'chip' +
+              (
+                s.code ===
+                activeCode
+                  ? ' active'
+                  : ''
+              ),
 
-          style:
-            s.code === activeCode
-              ? `background:${s.color};color:#fff;border-color:${s.color};`
-              : `border-color:${s.color};color:${s.color};`,
+            style:
+              s.code ===
+              activeCode
+                ? `background:${s.color};color:#fff;border-color:${s.color};`
+                : `border-color:${s.color};color:${s.color};`,
 
-          'data-shift-code':
-            s.code
-        },
-        [s.name]
-      );
+            'data-shift-code':
+              s.code
+          },
+          [s.name]
+        );
 
-      btn.addEventListener(
-        'click',
-        () => setSchedule(s.code)
-      );
+        btn.addEventListener(
+          'click',
+          () =>
+            setSchedule(
+              s.code
+            )
+        );
 
-      picker.appendChild(btn);
-    });
+        picker.appendChild(
+          btn
+        );
+      }
+    );
   }
 
   function setSchedule(code) {
-    if (!activeDate) return;
+    if (!activeDate) {
+      return;
+    }
 
     const dstr =
-      fmtDate(activeDate);
+      fmtDate(
+        activeDate
+      );
 
     storage.setSchedule(
       dstr,
@@ -532,7 +662,8 @@
         );
 
       /*
-        لو التاريخين موجودين نحسب باليوم كمان.
+        لو التاريخين موجودين
+        نحسب باليوم كمان.
       */
       if (
         $('#inpFromDate') &&
@@ -568,7 +699,9 @@
           h =
             Math.round(
               (
-                (end - start) /
+                (
+                  end - start
+                ) /
                 3600000
               ) * 100
             ) / 100;
@@ -582,12 +715,15 @@
           fmtTime12(to)
         }`;
     } else {
-      preview.textContent = '';
+      preview.textContent =
+        '';
     }
   }
 
   function updateComputedStats() {
-    if (!activeDate) return;
+    if (!activeDate) {
+      return;
+    }
 
     const entry =
       collectEntryFromForm({
@@ -595,7 +731,9 @@
       });
 
     const hours =
-      computeActualHours(entry);
+      computeActualHours(
+        entry
+      );
 
     const overtime =
       computeOvertimeHours(
@@ -613,17 +751,26 @@
         ? entry.to
         : '';
 
+    /*
+      الإجازة لا تعتبر تأخير أو انصراف مبكر.
+    */
     const late =
-      computeLateMinutes(
-        activeDate,
-        from
-      );
+      entry &&
+      entry.status === 'L'
+        ? 0
+        : computeLateMinutes(
+            activeDate,
+            from
+          );
 
     const early =
-      computeEarlyLeaveMinutes(
-        activeDate,
-        to
-      );
+      entry &&
+      entry.status === 'L'
+        ? 0
+        : computeEarlyLeaveMinutes(
+            activeDate,
+            to
+          );
 
     $('#daySheetHours')
       .textContent =
@@ -678,13 +825,20 @@
     const leaveHoursInput =
       $('#inpLeaveHours');
 
-    const leaveHours =
+    let leaveHours =
       leaveHoursInput
         ? Number(
             leaveHoursInput.value
           )
         : 8;
 
+    /*
+      الحالة الحالية.
+
+      مهم:
+      setStatus('L') يغير originalEntry
+      إلى إجازة بدون الحفظ الفوري.
+    */
     let status =
       originalEntry
         ? originalEntry.status
@@ -720,32 +874,33 @@
         status === 'X'
       )
     ) {
-      entry.from = from;
-      entry.to = to;
+      entry.from =
+        from;
 
-      /*
-        تاريخ البداية
-      */
+      entry.to =
+        to;
+
       entry.fromDate =
         $('#inpFromDate') &&
         $('#inpFromDate').value
           ? $('#inpFromDate').value
           : (
               activeDate
-                ? fmtDate(activeDate)
+                ? fmtDate(
+                    activeDate
+                  )
                 : ''
             );
 
-      /*
-        تاريخ النهاية
-      */
       entry.toDate =
         $('#inpToDate') &&
         $('#inpToDate').value
           ? $('#inpToDate').value
           : (
               activeDate
-                ? fmtDate(activeDate)
+                ? fmtDate(
+                    activeDate
+                  )
                 : ''
             );
 
@@ -791,8 +946,9 @@
         }
 
         const hours =
-          (end - start) /
-          3600000;
+          (
+            end - start
+          ) / 3600000;
 
         if (hours <= 0) {
           if (!silent) {
@@ -821,7 +977,8 @@
     // ---------- Note ----------
 
     if (note) {
-      entry.note = note;
+      entry.note =
+        note;
     }
 
     // ---------- Location ----------
@@ -835,21 +992,22 @@
 
     if (status === 'L') {
       let hours =
-        Number(leaveHours);
+        Number(
+          leaveHours
+        );
 
       /*
         لو المستخدم ساب الخانة فاضية
         نستخدم 8 ساعات.
       */
       if (
-        !Number.isFinite(hours)
+        !Number.isFinite(
+          hours
+        )
       ) {
         hours = 8;
       }
 
-      /*
-        السماح من 0 إلى 24 ساعة
-      */
       hours =
         Math.min(
           24,
@@ -884,26 +1042,121 @@
   // ---------- Status ----------
 
   function setStatus(code) {
-    if (!activeDate) return;
+    if (!activeDate) {
+      return;
+    }
 
     /*
-      تحديث ظهور خانة ساعات الإجازة
+      الإجازة مختلفة عن باقي الحالات:
+
+      لا نحفظ مباشرة.
+      المستخدم يختار:
+      - نوع الإجازة
+      - عدد الساعات
+      ثم يضغط "حفظ".
+
+      وده مهم عشان الرصيد والتقويم
+      والراتب يعتمدوا على نفس السجل النهائي.
     */
+    if (code === 'L') {
+      /*
+        لو مفيش سجل قديم، ننشئ حالة مؤقتة
+        بدون حفظها في storage.
+      */
+      if (!originalEntry) {
+        originalEntry = {
+          status: 'L',
+          leaveHours: 8
+        };
+      } else {
+        /*
+          نحافظ على باقي البيانات الموجودة
+          ونغير الحالة فقط.
+        */
+        originalEntry =
+          JSON.parse(
+            JSON.stringify(
+              originalEntry
+            )
+          );
+
+        originalEntry.status =
+          'L';
+
+        if (
+          originalEntry.leaveHours ==
+            null ||
+          !Number.isFinite(
+            Number(
+              originalEntry.leaveHours
+            )
+          )
+        ) {
+          originalEntry.leaveHours =
+            8;
+        }
+      }
+
+      /*
+        لو خانة الساعات فاضية
+        خليها 8.
+      */
+      if ($('#inpLeaveHours')) {
+        const current =
+          Number(
+            $('#inpLeaveHours')
+              .value
+          );
+
+        if (
+          !Number.isFinite(
+            current
+          )
+        ) {
+          $('#inpLeaveHours')
+            .value = '8';
+        }
+      }
+
+      updateLeaveHoursVisibility(
+        'L'
+      );
+
+      if ($('#inpLeaveType')) {
+        $('#inpLeaveType')
+          .disabled = false;
+      }
+
+      if ($('#inpAbsenceReason')) {
+        $('#inpAbsenceReason')
+          .disabled = true;
+      }
+
+      updateComputedStats();
+
+      haptic(10);
+
+      /*
+        لا نغلق الشيت ولا نحفظ.
+        الحفظ يتم من زر "حفظ".
+      */
+      return;
+    }
+
+    /*
+      باقي الحالات تحافظ على السلوك القديم:
+      حضرت / مطبق / غياب يتم تسجيلها مباشرة.
+    */
+
     updateLeaveHoursVisibility(
       code
     );
 
-    /*
-      تفعيل / تعطيل نوع الإجازة
-    */
     if ($('#inpLeaveType')) {
       $('#inpLeaveType').disabled =
         code !== 'L';
     }
 
-    /*
-      تفعيل / تعطيل سبب الغياب
-    */
     if ($('#inpAbsenceReason')) {
       $('#inpAbsenceReason').disabled =
         code !== 'B';
@@ -925,33 +1178,10 @@
         .value
         .trim();
 
-    const leaveType =
-      $('#inpLeaveType')
-        .value;
-
     const absenceReason =
       $('#inpAbsenceReason')
         .value
         .trim();
-
-    const leaveHoursInput =
-      $('#inpLeaveHours');
-
-    let leaveHours =
-      leaveHoursInput
-        ? Number(
-            leaveHoursInput.value
-          )
-        : 8;
-
-    if (
-      code === 'L' &&
-      !Number.isFinite(
-        leaveHours
-      )
-    ) {
-      leaveHours = 8;
-    }
 
     const entry = {
       status: code
@@ -960,13 +1190,18 @@
     // ---------- Attendance ----------
 
     if (
-      (code === 'A' ||
-       code === 'X') &&
+      (
+        code === 'A' ||
+        code === 'X'
+      ) &&
       from &&
       to
     ) {
-      entry.from = from;
-      entry.to = to;
+      entry.from =
+        from;
+
+      entry.to =
+        to;
 
       if (
         $('#inpFromDate') &&
@@ -1006,14 +1241,17 @@
         !$('#inpFromDate').value
       ) {
         $('#inpFromDate').value =
-          fmtDate(activeDate);
+          fmtDate(
+            activeDate
+          );
       }
     }
 
     // ---------- Note ----------
 
     if (note) {
-      entry.note = note;
+      entry.note =
+        note;
     }
 
     // ---------- Location ----------
@@ -1021,28 +1259,6 @@
     if (location) {
       entry.location =
         location;
-    }
-
-    // ---------- Leave ----------
-
-    if (code === 'L') {
-      entry.leaveHours =
-        Math.min(
-          24,
-          Math.max(
-            0,
-            Number.isFinite(
-              leaveHours
-            )
-              ? leaveHours
-              : 8
-          )
-        );
-
-      if (leaveType) {
-        entry.leaveType =
-          leaveType;
-      }
     }
 
     // ---------- Absence ----------
@@ -1055,6 +1271,9 @@
         absenceReason;
     }
 
+    /*
+      حفظ الحالة العادية
+    */
     storage.setEntry(
       fmtDate(activeDate),
       entry
@@ -1062,12 +1281,14 @@
 
     originalEntry =
       JSON.parse(
-        JSON.stringify(entry)
+        JSON.stringify(
+          entry
+        )
       );
 
-    SPUtils.haptic(12);
+    haptic(12);
 
-    SPUtils.toast(
+    toast(
       `تم تسجيل: ${
         statusLabels[code]
       }`,
@@ -1082,7 +1303,9 @@
   // ---------- Delete ----------
 
   async function deleteEntry() {
-    if (!activeDate) return;
+    if (!activeDate) {
+      return;
+    }
 
     const ok =
       await confirmDialog(
@@ -1095,15 +1318,17 @@
         }
       );
 
-    if (!ok) return;
+    if (!ok) {
+      return;
+    }
 
     storage.deleteEntry(
       fmtDate(activeDate)
     );
 
-    SPUtils.haptic(15);
+    haptic(15);
 
-    SPUtils.toast(
+    toast(
       'تم حذف التسجيل',
       'success'
     );
@@ -1116,7 +1341,9 @@
   // ---------- Save ----------
 
   function saveDay() {
-    if (!activeDate) return;
+    if (!activeDate) {
+      return;
+    }
 
     const entry =
       collectEntryFromForm();
@@ -1126,11 +1353,12 @@
         'حدد نوع الحضور أولًا (حضرت / مطبق / إجازة / غياب)',
         'warning'
       );
+
       return;
     }
 
     /*
-      تحقق إضافي من المدة
+      تحقق إضافي من مدة الحضور
     */
     if (
       (
@@ -1153,6 +1381,7 @@
           'الوقت غير منطقي — تحقق من القيم',
           'error'
         );
+
         return;
       }
     }
@@ -1179,10 +1408,20 @@
           'عدد ساعات الإجازة يجب أن يكون من 0 إلى 24 ساعة',
           'error'
         );
+
         return;
       }
+
+      /*
+        نوع الإجازة اختياري،
+        لكن لو غير محدد نتركه بدون قيمة.
+      */
     }
 
+    /*
+      هنا فقط يتم حفظ الإجازة
+      أو أي تعديل تم من خلال زر الحفظ.
+    */
     storage.setEntry(
       fmtDate(activeDate),
       entry
@@ -1190,10 +1429,12 @@
 
     originalEntry =
       JSON.parse(
-        JSON.stringify(entry)
+        JSON.stringify(
+          entry
+        )
       );
 
-    SPUtils.haptic(12);
+    haptic(12);
 
     toast(
       'تم الحفظ بنجاح',
@@ -1216,6 +1457,7 @@
         'لا يوجد تسجيل لنسخه',
         'warning'
       );
+
       return;
     }
 
@@ -1229,7 +1471,9 @@
         }
       );
 
-    if (!ok) return;
+    if (!ok) {
+      return;
+    }
 
     closeDaySheet();
 
@@ -1245,7 +1489,9 @@
     const toolbar =
       $('#calToolbar');
 
-    toolbar.classList.add('show');
+    toolbar.classList.add(
+      'show'
+    );
 
     $('#selCount').textContent =
       'حدد الأيام لنسخ التسجيل إليها';
@@ -1270,11 +1516,18 @@
       fmtDate(today);
 
     let entry =
-      storage.getEntry(dstr) ||
+      storage.getEntry(
+        dstr
+      ) ||
       {
         status: 'A'
       };
 
+    /*
+      لو اليوم عليه إجازة أو غياب
+      لا نحوله تلقائيًا إلى حضور
+      إلا عند الضغط على تسجيل حضور.
+    */
     entry.status =
       entry.status === 'X'
         ? 'X'
@@ -1302,7 +1555,9 @@
 
     toast(
       `تم تسجيل الحضور: ${
-        fmtTime12(entry.from)
+        fmtTime12(
+          entry.from
+        )
       }`,
       'success'
     );
@@ -1318,7 +1573,9 @@
       fmtDate(today);
 
     let entry =
-      storage.getEntry(dstr);
+      storage.getEntry(
+        dstr
+      );
 
     if (
       !entry ||
@@ -1331,6 +1588,7 @@
         'لم تسجل حضور بعد — اضغط "تسجيل حضور" أولًا',
         'warning'
       );
+
       return;
     }
 
@@ -1354,7 +1612,9 @@
 
     toast(
       `تم تسجيل الانصراف: ${
-        fmtTime12(entry.to)
+        fmtTime12(
+          entry.to
+        )
       }`,
       'success'
     );
@@ -1494,7 +1754,9 @@
       .addEventListener(
         'click',
         () => {
-          if (!activeDate) return;
+          if (!activeDate) {
+            return;
+          }
 
           storage.setSchedule(
             fmtDate(activeDate),
