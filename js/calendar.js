@@ -277,23 +277,19 @@
       /*
         ساعات اليوم.
 
-        الإجازة الرسمية:
-        0 ساعات.
+        الإجازة الرسمية لا توقف
+        حساب ساعات العمل.
 
-        أول رمضان:
-        ليس إجازة، لذلك لا نغير
-        حساب ساعات الحضور بسببه.
+        إذا تم تسجيل حضور في
+        الإجازة الرسمية يتم حساب
+        الساعات بشكل طبيعي.
       */
       const hours =
-        official
-          ? 0
-          : (
+        entry
+          ? computeEntryHours(
               entry
-                ? computeEntryHours(
-                    entry
-                  )
-                : 0
-            );
+            )
+          : 0;
 
       // ---------- Cell Class ----------
 
@@ -335,10 +331,12 @@
           ' selected';
       }
 
-      if (official) {
-        cellClass +=
-          ' official-holiday';
-      }
+      /*
+        الإجازة الرسمية لا تمنع
+        التعامل مع اليوم كيوم عمل.
+        لذلك لا نضيف class خاص
+        يعطل أو يغير سلوك اليوم.
+      */
 
       if (ramadanStart) {
         cellClass +=
@@ -372,7 +370,11 @@
 
       // ---------- Shift Background ----------
 
-      if (shift && !official) {
+      /*
+        الوردية تظهر بشكل طبيعي
+        حتى لو كان اليوم إجازة رسمية.
+      */
+      if (shift) {
         cell.style.background =
           shift.color;
 
@@ -381,21 +383,6 @@
 
         cell.style.color =
           '#fff';
-      }
-
-      /*
-        الإجازة الرسمية تأخذ
-        تنسيقها الخاص بدل لون الوردية.
-      */
-      if (official) {
-        cell.style.background =
-          'rgba(194, 136, 78, 0.14)';
-
-        cell.style.borderColor =
-          'rgba(194, 136, 78, 0.55)';
-
-        cell.style.color =
-          '#6d4c2f';
       }
 
       // ---------- Day Number ----------
@@ -431,6 +418,10 @@
           }
         );
 
+      /*
+        في حالة الإجازة الرسمية:
+        يظهر اسم المناسبة فقط.
+      */
       if (officialHoliday) {
         tag.textContent =
           officialHoliday.name;
@@ -447,26 +438,6 @@
       cell.appendChild(
         tag
       );
-
-      // ---------- Official Holiday Label ----------
-
-      if (officialHoliday) {
-        const holidayLabel =
-          el(
-            'div',
-            {
-              class:
-                'official-holiday-label'
-            }
-          );
-
-        holidayLabel.textContent =
-          'إجازة رسمية';
-
-        cell.appendChild(
-          holidayLabel
-        );
-      }
 
       // ---------- Ramadan Label ----------
 
@@ -491,11 +462,10 @@
       // ---------- Hours Preview ----------
 
       /*
-        الإجازة الرسمية لا تعرض ساعات
-        لأنها ليست ساعات عمل.
+        ساعات الحضور تظهر بشكل طبيعي
+        حتى في الإجازات الرسمية.
       */
       if (
-        !official &&
         entry &&
         hours > 0
       ) {
@@ -549,28 +519,6 @@
         );
       }
 
-      // ---------- Official Holiday Badge ----------
-
-      if (official) {
-        const officialBadge =
-          el(
-            'div',
-            {
-              class:
-                'official-badge',
-              'aria-hidden':
-                'true'
-            }
-          );
-
-        officialBadge.textContent =
-          'عطلة';
-
-        cell.appendChild(
-          officialBadge
-        );
-      }
-
       // ---------- Click ----------
 
       cell.addEventListener(
@@ -578,25 +526,13 @@
         () => {
 
           /*
-            لو إجازة رسمية:
-            لا نفتح سجل حضور جديد
-            بالضغط العادي.
+            كل الأيام قابلة للضغط
+            بما فيها الإجازات الرسمية.
 
-            لكن لو فيه سجل حضور موجود بالفعل
-            نسمح بفتحه للتعديل.
+            الإجازة الرسمية لا تمنع
+            تسجيل الحضور أو الإجازة
+            أو تعديل السجل.
           */
-          if (
-            official &&
-            !entry &&
-            selectedDates.size === 0
-          ) {
-            SPUtils.toast(
-              officialHoliday.name,
-              'info'
-            );
-
-            return;
-          }
 
           if (
             selectedDates.size > 0
@@ -702,8 +638,12 @@
       }`;
 
     if (officialHoliday) {
+      /*
+        اسم المناسبة فقط بدون
+        وصف أنها إجازة رسمية.
+      */
       label +=
-        ` — ${officialHoliday.name} — إجازة رسمية`;
+        ` — ${officialHoliday.name}`;
     } else if (ramadanStart) {
       label +=
         ' — أول رمضان';
@@ -989,19 +929,6 @@
       return 0;
     }
 
-    /*
-      الإجازة الرسمية لا تعتبر
-      ساعات عمل.
-    */
-    if (
-      entry.date &&
-      isOfficialHoliday(
-        parseDate(entry.date)
-      )
-    ) {
-      return 0;
-    }
-
     // ---------- Leave ----------
 
     if (
@@ -1024,6 +951,10 @@
         );
       }
 
+      /*
+        الإجازة بدون تحديد ساعات
+        تحسب تلقائياً 8 ساعات.
+      */
       return 8;
     }
 
